@@ -1,0 +1,388 @@
+body {
+    width: 550px;
+    min-height: 500px;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #333;
+}
+
+kbd {
+    background-color: #f1f3f4;
+    border: 1px solid #dadce0;
+    border-radius: 4px;
+    color: #3c4043;
+    display: inline-block;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1;
+    padding: 2px 4px;
+    margin: 0 1px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+}
+
+.container {
+    padding: 20px;
+    max-height: 700px;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.header h2 {
+    margin: 0;
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.section {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: all 0.3s ease;
+    opacity: 1;
+}
+
+.section.hiding {
+    opacity: 0;
+    transform: translateY(-10px);
+    max-height: 0;
+    padding: 0 16px;
+    margin-bottom: 0;
+    overflow: hidden;
+}
+
+.section.showing {
+    opacity: 1;
+    transform: translateY(0);
+    animation: slideIn 0.4s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Styles for collapsible save section */
+.save-section summary {
+    font-size: 14px;
+    font-weight: 600;
+    color: #4a5568;
+    cursor: pointer;
+    list-style: none;
+}
+.save-section summary::-webkit-details-marker {
+    display: none;
+}
+.save-section .details-content {
+    padding-top: 12px;
+}
+
+.section h3 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #4a5568;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 8px;
+}
+.description {
+    font-size: 12px;
+    color: #4a5568;
+    margin-top: -8px;
+    margin-bottom: 12px;
+}
+
+.form-group {
+    margin-bottom: 12px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: #4a5568;
+    margin-bottom: 4px;
+}
+
+select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+    background: white;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.period-select {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.comparison-grid {
+    display: grid;
+    gap: 8px;
+}
+
+.comparison-item {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    align-items: center;
+    padding: 8px 12px;
+    background: #f7fafc;
+    border-radius: 6px;
+    font-size: 11px;
+    gap: 8px;
+}
+
+.comparison-item .metric {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.comparison-item .current, .comparison-item .previous {
+    text-align: center;
+    font-weight: 500;
+}
+
+.comparison-item .change, .comparison-item .percentage {
+    text-align: center;
+    font-weight: 600;
+}
+
+.positive { color: #38a169; }
+.negative { color: #e53e3e; }
+
+/* Styles for company table */
+#company-comparison-section h3 {
+    font-size: 14px;
+    color: #4a5568;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 8px;
+}
+.company-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 12px;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.company-table th, .company-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #e2e8f0;
+    word-wrap: break-word;
+    max-width: 200px;
+}
+.company-table th {
+    font-weight: 600;
+    color: #4a5568;
+    background: #f7fafc;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+.company-table td {
+    color: #2d3748;
+}
+.company-table td:nth-child(1) {
+    text-align: center;
+    width: 40px;
+}
+.company-table td:nth-child(2) {
+    text-align: left;
+    font-weight: 500;
+}
+.company-table td:nth-child(3) {
+    text-align: center;
+    font-size: 11px;
+}
+.company-table td:nth-child(4) {
+    text-align: center;
+    font-weight: 500;
+}
+.company-table td:nth-child(5) {
+    text-align: center;
+    font-weight: bold;
+}
+
+/* Table container with horizontal scroll if needed */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    scroll-behavior: smooth;
+    transition: all 0.3s ease;
+}
+
+/* Improved scrollbar styling */
+.table-container::-webkit-scrollbar {
+    height: 8px;
+}
+.table-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+.table-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* NEW: Styles for Current Data Section */
+#current-data-section h3 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #4a5568;
+}
+.current-data-header {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: #4a5568;
+    margin-bottom: 12px;
+}
+.kpi-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.kpi-item {
+    background: #f7fafc;
+    padding: 8px;
+    border-radius: 6px;
+    text-align: center;
+}
+.kpi-item .label {
+    font-size: 11px;
+    color: #718096;
+}
+.kpi-item .value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2d3748;
+}
+.directions-list {
+    font-size: 12px;
+    color: #4a5568;
+}
+.direction-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+}
+
+
+.btn {
+    width: 100%;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+}
+
+.btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(72, 187, 120, 0.5);
+}
+
+.status {
+    text-align: center;
+    font-size: 12px;
+    padding: 8px;
+    border-radius: 6px;
+    margin-top: 8px;
+}
+
+.status.success { background: #c6f6d5; color: #22543d; border: 1px solid #9ae6b4; }
+.status.error { background: #fed7d7; color: #742a2a; border: 1px solid #fca5a5; }
+.status.info { background: #bee3f8; color: #2a4365; border: 1px solid #90cdf4; }
+.status.warning { background: #fef5e7; color: #744210; border: 1px solid #f6e05e; }
+
+.loading { animation: pulse 1.5s ease-in-out infinite; }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+
+.btn-danger {
+    background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(229, 62, 62, 0.4);
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(229, 62, 62, 0.5);
+}
+
+.btn-info {
+    background: linear-gradient(135deg, #3182ce 0%, #2b6cb0 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(49, 130, 206, 0.4);
+}
+
+.btn-info:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(49, 130, 206, 0.5);
+}

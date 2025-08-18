@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Datapark</h2>
+        </div>
+
+        <!-- NEW: Current Data Section -->
+        <div class="section">
+             <button id="show-current-btn" class="btn btn-primary">Показать данные с экрана</button>
+             <div id="current-data-section" style="display: none; margin-top: 15px;">
+                <!-- Populated by JavaScript -->
+             </div>
+        </div>
+
+
+
+        <!-- Save Data Section (Collapsible) -->
+        <details class="section save-section">
+            <summary>1. Сохранение данных</summary>
+            <div class="details-content">
+                <p class="description">Откройте нужный период на дашборде и нажмите кнопку ниже, чтобы сохранить его данные.</p>
+                
+                <div class="form-group">
+                    <label>Режим сохранения:</label>
+                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="radio" name="save-mode" value="general" checked style="margin-right: 5px;">
+                            Общие данные
+                        </label>
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="radio" name="save-mode" value="district" style="margin-right: 5px;">
+                            Данные района
+                        </label>
+                    </div>
+                    
+                    <div id="district-input-group" style="display: none;">
+                        <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
+                            <input type="text" id="district-name-input" placeholder="Asaka, Andijon, Bekobod..." 
+                                   list="district-suggestions"
+                                   style="flex: 1; padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 13px; box-sizing: border-box;">
+                            <button id="detect-district-btn" type="button" class="btn btn-info" style="font-size: 11px; padding: 6px 10px;">
+                                🔍 Определить
+                            </button>
+                        </div>
+                        
+                        <datalist id="district-suggestions">
+                            <option value="Asaka">Asaka</option>
+                            <option value="Andijon">Andijon</option>
+                            <option value="Bekobod">Bekobod</option>
+                            <option value="Shahrikhon">Shahrikhon</option>
+                            <option value="Marxamat">Marxamat</option>
+                            <option value="Baliqchi">Baliqchi</option>
+                            <option value="Qorasuv">Qorasuv</option>
+                            <option value="Xonobod">Xonobod</option>
+                            <option value="Jalolquduq">Jalolquduq</option>
+                            <option value="Oltinko'l">Oltinko'l</option>
+                            <option value="Paxtaobod">Paxtaobod</option>
+                            <option value="Ohangaron">Ohangaron</option>
+                            <option value="Chinoz">Chinoz</option>
+                            <option value="Qibray">Qibray</option>
+                            <option value="Parkent">Parkent</option>
+                            <option value="Yangiyo'l">Yangiyo'l</option>
+                        </datalist>
+                        
+                        <div id="detected-district-info" style="display: none; font-size: 11px; color: #2d5aa0; margin-bottom: 4px;">
+                            ✅ Обнаружен район: <strong id="detected-district-name"></strong>
+                        </div>
+                        <small style="font-size: 11px; color: #718096; display: block;">
+                            💡 Начните печатать для подсказок или нажмите "🔍 Определить"<br>
+                            Данные сохранятся как "Район_Период" (например: Asaka_2025-Q2)
+                        </small>
+                    </div>
+                </div>
+                
+                <button id="save-data-btn" class="btn btn-primary">💾 Сохранить данные с экрана</button>
+                <button id="clear-cache-btn" class="btn btn-danger" style="margin-top: 8px;">🗑️ Очистить весь кэш</button>
+                <button id="diagnose-btn" class="btn btn-info" style="margin-top: 4px;">🔍 Диагностика страницы</button>
+            </div>
+        </details>
+
+
+
+
+
+        <!-- Comparison Section -->
+        <div class="section">
+            <h3>2. Сравнение периодов</h3>
+            <p class="description">Выберите два сохраненных периода для сравнения.</p>
+            <div class="period-select">
+                <div class="form-group">
+                    <label>Период 1 (Новый):</label>
+                    <select id="period1-select">
+                        <option value="">Нет сохраненных данных</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Период 2 (Старый):</label>
+                    <select id="period2-select">
+                        <option value="">Нет сохраненных данных</option>
+                    </select>
+                </div>
+            </div>
+            <button id="compare-btn" class="btn btn-primary">Сравнить</button>
+        </div>
+
+        <!-- District Comparison Section -->
+        <div class="section">
+            <h3>3. Сравнение районов</h3>
+            <p class="description">Выберите два сохраненных района для сравнения.</p>
+            
+            <div class="form-group">
+                <label>Выберите район:</label>
+                <select id="district-filter-select">
+                    <option value="">Выберите район для фильтрации...</option>
+                </select>
+            </div>
+            
+            <div class="period-select">
+                <div class="form-group">
+                    <label>Район 1 (Новый):</label>
+                    <select id="district1-select" disabled>
+                        <option value="">Сначала выберите район выше</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Район 2 (Старый):</label>
+                    <select id="district2-select" disabled>
+                        <option value="">Сначала выберите район выше</option>
+                    </select>
+                </div>
+            </div>
+            <button id="compare-districts-btn" class="btn btn-primary">Сравнить районы</button>
+        </div>
+
+        <!-- Results Section -->
+        <div class="section" id="comparison-section" style="display: none;">
+            <h3>Результаты сравнения</h3>
+            <div class="comparison-grid" id="comparison-data">
+                <!-- Populated by JavaScript -->
+            </div>
+            <!-- Company Details Table -->
+            <div id="company-comparison-section" style="margin-top: 20px;">
+                 <!-- Populated by JavaScript -->
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px;">
+                <button id="generate-csv-btn" class="btn btn-secondary">
+                    📊 Сгенерировать CSV
+                </button>
+                <button id="generate-docx-btn" class="btn btn-primary">
+                    📄 Сгенерировать DOCX
+                </button>
+            </div>
+        </div>
+
+        <!-- District Results Section -->
+        <div class="section" id="district-comparison-section" style="display: none;">
+            <h3>Результаты сравнения районов</h3>
+            <div class="comparison-grid" id="district-comparison-data">
+                <!-- Populated by JavaScript -->
+            </div>
+            <!-- District Company Details Table -->
+            <div id="district-company-comparison-section" style="margin-top: 20px;">
+                 <!-- Populated by JavaScript -->
+            </div>
+            <div style="margin-top: 16px;">
+                <button id="generate-district-csv-btn" class="btn btn-secondary">
+                    📊 Сгенерировать CSV (районы)
+                </button>
+            </div>
+        </div>
+
+        <!-- Status Messages -->
+        <div id="status" class="status"></div>
+    </div>
+    <!-- Load modular JavaScript files -->
+    <script src="data-scraper.js"></script>
+    <script src="storage-manager.js"></script>
+    <script src="comparison-engine.js"></script>
+    <script src="export-manager.js"></script>
+    <script src="ui-manager.js"></script>
+    <script src="notification-overlay.js"></script>
+    <script src="popup.js"></script>
+</body>
+</html>
