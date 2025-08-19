@@ -1,6 +1,13 @@
 // Simple floating buttons for IT Park Dashboard Helper Extension
 console.log('🚀 Datapark content script loaded on:', window.location.href);
 
+// Check Chrome extension APIs availability
+if (typeof chrome === 'undefined') {
+    console.error('❌ Chrome extension APIs not available');
+} else {
+    console.log('✅ Chrome extension APIs available');
+}
+
 // Check if we're on an IT Park domain
 if (window.location.hostname.includes('it-park.uz')) {
     console.log('✅ On IT Park domain, initializing floating buttons...');
@@ -180,19 +187,40 @@ if (window.location.hostname.includes('it-park.uz')) {
                 successMessage = `Район "${detectedDistrictName}" (${pageData.periodKey}) сохранен! 🏘️\n\nДоступно для сравнения районов в основном расширении.`;
             }
             
-            // Use message passing to save data via background script
-            const response = await chrome.runtime.sendMessage({
-                type: 'save-data',
-                data: {
-                    key: key,
-                    value: pageData.data
+            // Try message passing first, fallback to direct storage
+            if (chrome?.runtime?.sendMessage) {
+                try {
+                    const response = await chrome.runtime.sendMessage({
+                        type: 'save-data',
+                        data: {
+                            key: key,
+                            value: pageData.data
+                        }
+                    });
+                    
+                    if (response && response.success) {
+                        showNotification(successMessage, 'success');
+                    } else {
+                        throw new Error(response?.error || 'Failed to save data via message passing');
+                    }
+                } catch (messageError) {
+                    console.warn('Message passing failed, using direct storage:', messageError);
+                    // Fallback to direct storage
+                    await chrome.storage.local.set({
+                        [key]: pageData.data
+                    });
+                    showNotification(successMessage, 'success');
                 }
-            });
-            
-            if (response.success) {
-                showNotification(successMessage, 'success');
             } else {
-                throw new Error(response.error || 'Failed to save data');
+                // Direct storage access if chrome.runtime not available
+                if (chrome?.storage?.local) {
+                    await chrome.storage.local.set({
+                        [key]: pageData.data
+                    });
+                    showNotification(successMessage, 'success');
+                } else {
+                    throw new Error('Chrome extension APIs not available');
+                }
             }
             
             // Reset button state

@@ -300,10 +300,17 @@ async function handleGenerateCSV() {
         return;
     }
     
-    const templateCSV = await exportManager.generatePeriodTemplateCSV(comparisonResult);
-    exportManager.downloadCSV(templateCSV, `regions_comparison_${comparisonResult.period1.key}_vs_${comparisonResult.period2.key}.csv`);
-
-    uiManager.showStatus('CSV файл в формате шаблона успешно сгенерирован!', 'success');
+    uiManager.showStatus('Генерирую CSV отчет...', 'info');
+    
+    try {
+        const csvContent = await exportManager.generatePeriodTemplateCSV(comparisonResult);
+        exportManager.downloadCSV(csvContent, `regions_comparison_${comparisonResult.period1.key}_vs_${comparisonResult.period2.key}.csv`);
+        
+        uiManager.showStatus('CSV файл успешно сгенерирован!', 'success');
+    } catch (error) {
+        console.error('Error generating CSV:', error);
+        uiManager.showStatus(`Ошибка генерации CSV: ${error.message}`, 'error');
+    }
 }
 
 async function handleGenerateDOCX() {
@@ -330,11 +337,20 @@ async function handleGenerateDistrictCSV() {
         return;
     }
     
-    const templateCSV = await exportManager.generateTemplateCSV(districtComparisonResult);
-    const districtName = exportManager.extractDistrictName(districtComparisonResult.period1.key);
-    exportManager.downloadCSV(templateCSV, `comparison_${districtName}_${exportManager.extractPeriod(districtComparisonResult.period1.key)}_vs_${exportManager.extractPeriod(districtComparisonResult.period2.key)}.csv`);
-
-    uiManager.showStatus('CSV файл в формате шаблона успешно сгенерирован!', 'success');
+    uiManager.showStatus('Генерирую CSV отчет по районам...', 'info');
+    
+    try {
+        const csvContent = await exportManager.generateDistrictTemplateCSV(districtComparisonResult);
+        
+        const districtName = exportManager.extractDistrictName(districtComparisonResult.period1.key);
+        const filename = `comparison_${districtName}_${exportManager.extractPeriod(districtComparisonResult.period1.key)}_vs_${exportManager.extractPeriod(districtComparisonResult.period2.key)}.csv`;
+        
+        exportManager.downloadCSV(csvContent, filename);
+        uiManager.showStatus('CSV файл успешно сгенерирован!', 'success');
+    } catch (error) {
+        console.error('Error generating district CSV:', error);
+        uiManager.showStatus(`Ошибка генерации CSV: ${error.message}`, 'error');
+    }
 }
 
 async function handleDetectDistrict() {

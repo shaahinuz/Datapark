@@ -1,4 +1,4 @@
-// Export functionality for CSV and DOCX generation
+// Export functionality matching the exact template format from PDF
 class ExportManager {
     constructor() {
         this.storageManager = new StorageManager();
@@ -28,87 +28,175 @@ class ExportManager {
                 name: this.extractDistrictName(key.replace('district_', '')),
                 data: allData[key]
             }));
+
+        return this.createPeriodCSV(period1, period2, period1Districts, period2Districts);
+    }
+
+    createPeriodCSV(period1, period2, period1Districts, period2Districts) {
+        const period1Year = this.extractYear(period1.key);
+        const period1Quarter = this.extractQuarter(period1.key);
+        const period2Year = this.extractYear(period2.key);
+        const period2Quarter = this.extractQuarter(period2.key);
+
+        // Calculate totals
+        const period1Totals = this.calculateTotals(period1Districts);
+        const period2Totals = this.calculateTotals(period2Districts);
         
-        let csvContent = '';
-        csvContent += `,,"<b>${period2Year} йил ${this.getUzbekQuarterText(period2Quarter)}</b>",,,"<b>${period1Year} йил ${this.getUzbekQuarterText(period1Quarter)}</b>",,,,,\n`;
+        const totalResidents1 = period1.data.totalResidents || period1Totals.residents;
+        const totalEmployees1 = period1.data.employeeCount || period1Totals.employees;
+        const totalIncome1 = period1.data.totalIncome || period1Totals.income;
+        const totalExport1 = period1.data.exportVolume || period1Totals.export;
         
-        csvContent += '"<b>Ҳудудлар</b>",';
-        csvContent += '"<b>Резидентлар сони</b>","<b>Ходимлар сони</b>","<b>Хизматлар ҳажми (млрд. сум)</b>","<b>Экспорт (минг АҚШ доллари)</b>",';
-        csvContent += '"<b>Резидентлар сони</b>","<b>Ходимлар сони</b>",';
-        csvContent += '"<b>Хизматлар ҳажми (млрд. сум)</b>","<b>Ўсиш (+/-)</b>","<b>Ўсиш сурьати (%)</b>",';
-        csvContent += '"<b>Экспорт (минг АҚШ доллари)</b>","<b>Ўсиш (+/-)</b>","<b>Ўсиш сурьати (%)</b>"\n';
+        const totalResidents2 = period2.data.totalResidents || period2Totals.residents;
+        const totalEmployees2 = period2.data.employeeCount || period2Totals.employees;
+        const totalIncome2 = period2.data.totalIncome || period2Totals.income;
+        const totalExport2 = period2.data.exportVolume || period2Totals.export;
         
-        // Жами row
-        csvContent += 'Жами:,';
-        csvContent += `${period2.data.totalResidents || 0},`;
-        csvContent += `${period2.data.employeeCount || 0},`;
-        csvContent += `${(period2.data.totalIncome || 0).toFixed(2)},`;
-        csvContent += `${(period2.data.exportVolume || 0).toFixed(2)},`;
-        csvContent += `${period1.data.totalResidents || 0},`;
-        csvContent += `${period1.data.employeeCount || 0},`;
-        
-        const incomeChange = (period1.data.totalIncome || 0) - (period2.data.totalIncome || 0);
-        const incomeGrowthRate = period2.data.totalIncome ? ((incomeChange / period2.data.totalIncome) * 100) : 0;
-        csvContent += `${(period1.data.totalIncome || 0).toFixed(2)},`;
-        csvContent += `${incomeChange > 0 ? '+' : ''}${incomeChange.toFixed(2)},`;
-        csvContent += `${incomeGrowthRate.toFixed(2)}%,`;
-        
-        const exportChange = (period1.data.exportVolume || 0) - (period2.data.exportVolume || 0);
-        const exportGrowthRate = period2.data.exportVolume ? ((exportChange / period2.data.exportVolume) * 100) : 0;
-        csvContent += `${(period1.data.exportVolume || 0).toFixed(2)},`;
-        csvContent += `${exportChange > 0 ? '+' : ''}${exportChange.toFixed(2)},`;
-        csvContent += `${exportGrowthRate.toFixed(2)}%\n`;
-        
+        const incomeChange = totalIncome1 - totalIncome2;
+        const incomeGrowthRate = totalIncome2 ? ((totalIncome1 / totalIncome2) * 100) : 0;
+        const exportChange = totalExport1 - totalExport2;
+        const exportGrowthRate = totalExport2 ? ((totalExport1 / totalExport2) * 100) : 0;
+
+        // Generate district rows
         const allDistrictNames = new Set();
         period1Districts.forEach(d => allDistrictNames.add(d.name));
         period2Districts.forEach(d => allDistrictNames.add(d.name));
-        
         const sortedDistricts = Array.from(allDistrictNames).sort();
         
-        sortedDistricts.forEach(districtName => {
+        // Create CSV content
+        let csvContent = '';
+        
+        // Title only
+        csvContent += `"${period1Year} йил ${this.getUzbekQuarterText(period1Quarter)} чорагининг IT-Park резидентларининг ҳудудлар кесимида хизматлар ҳажми ва экспорт кўрсаткичлари тўғрисида маълумот"\n`;
+        
+        // Period headers (first row)
+        csvContent += '"","",';  // Empty cells for # and Ҳудудлар
+        csvContent += `"${period2Year} йил ${this.getUzbekQuarterText(period2Quarter)}-чорак","","","",`;  // 4 columns for period2
+        csvContent += `"${period1Year} йил ${this.getUzbekQuarterText(period1Quarter)}-чорак","","","","","","",""\n`;
+        
+        // Column headers (second row)
+        csvContent += '"#","Ҳудудлар","Резидентлар сони","Ходимлар сони","Хизматлар ҳажми (млрд. сўм)","Экспорт (минг АҚШ доллари)","Резидентлар сони","Ходимлар сони","Хизматлар ҳажми (млрд. сўм)","Хизматлар ўсиши (+/-)","Хизматлар ўсиш суръати (%)","Экспорт (минг АҚШ доллари)","Экспорт ўсиши (+/-)","Экспорт ўсиш суръати (%)"\n';
+        
+        // Total row
+        csvContent += ',"Жами:",';
+        csvContent += `${totalResidents2},${totalEmployees2},${totalIncome2.toFixed(3)},${totalExport2.toFixed(3)},`;
+        csvContent += `${totalResidents1},${totalEmployees1},${totalIncome1.toFixed(3)},`;
+        csvContent += `${incomeChange >= 0 ? '+' : ''}${incomeChange.toFixed(3)},${incomeGrowthRate.toFixed(1)}%,`;
+        csvContent += `${totalExport1.toFixed(3)},${exportChange >= 0 ? '+' : ''}${exportChange.toFixed(3)},${exportGrowthRate.toFixed(1)}%\n`;
+        
+        // District rows
+        sortedDistricts.forEach((districtName, index) => {
             const district1 = period1Districts.find(d => d.name === districtName);
             const district2 = period2Districts.find(d => d.name === districtName);
-            
-            csvContent += `${districtName},`;
-            
-            if (district2) {
-                csvContent += `${district2.data.totalResidents || 0},`;
-                csvContent += `${district2.data.employeeCount || 0},`;
-                csvContent += `${(district2.data.totalIncome || 0).toFixed(2)},`;
-                csvContent += `${(district2.data.exportVolume || 0).toFixed(2)},`;
-            } else {
-                csvContent += 'No data,No data,No data,No data,';
-            }
-            
-            if (district1) {
-                csvContent += `${district1.data.totalResidents || 0},`;
-                csvContent += `${district1.data.employeeCount || 0},`;
-                
-                if (district2) {
-                    const distIncomeChange = (district1.data.totalIncome || 0) - (district2.data.totalIncome || 0);
-                    const distIncomeGrowthRate = district2.data.totalIncome ? ((distIncomeChange / district2.data.totalIncome) * 100) : 0;
-                    csvContent += `${(district1.data.totalIncome || 0).toFixed(2)},`;
-                    csvContent += `${distIncomeChange > 0 ? '+' : ''}${distIncomeChange.toFixed(2)},`;
-                    csvContent += `${distIncomeGrowthRate.toFixed(2)}%,`;
-                    
-                    const distExportChange = (district1.data.exportVolume || 0) - (district2.data.exportVolume || 0);
-                    const distExportGrowthRate = district2.data.exportVolume ? ((distExportChange / district2.data.exportVolume) * 100) : 0;
-                    csvContent += `${(district1.data.exportVolume || 0).toFixed(2)},`;
-                    csvContent += `${distExportChange > 0 ? '+' : ''}${distExportChange.toFixed(2)},`;
-                    csvContent += `${distExportGrowthRate.toFixed(2)}%`;
-                } else {
-                    csvContent += `${(district1.data.totalIncome || 0).toFixed(2)},New district,New district,`;
-                    csvContent += `${(district1.data.exportVolume || 0).toFixed(2)},New district,New district`;
-                }
-            } else {
-                csvContent += 'No data,No data,No data,No data,No data,No data,No data,No data';
-            }
-            csvContent += '\n';
+            csvContent += this.generatePeriodDistrictCSVRow(districtName, district1, district2, index + 1);
         });
         
         return csvContent;
     }
 
+    generatePeriodDistrictCSVRow(districtName, district1, district2, rowNumber) {
+        let row = `${rowNumber},"${districtName}",`;
+        
+        // Period 2 data (older) first
+        if (district2) {
+            row += `${district2.data.totalResidents || 0},`;
+            row += `${district2.data.employeeCount || 0},`;
+            row += `${(district2.data.totalIncome || 0).toFixed(3)},`;
+            row += `${(district2.data.exportVolume || 0).toFixed(3)},`;
+        } else {
+            row += `0,0,0.000,0.000,`;
+        }
+        
+        // Period 1 data (newer) and calculations
+        if (district1) {
+            const income1 = district1.data.totalIncome || 0;
+            const export1 = district1.data.exportVolume || 0;
+            
+            row += `${district1.data.totalResidents || 0},`;
+            row += `${district1.data.employeeCount || 0},`;
+            row += `${income1.toFixed(3)},`;
+            
+            if (district2) {
+                const income2 = district2.data.totalIncome || 0;
+                const export2 = district2.data.exportVolume || 0;
+                
+                const incomeChange = income1 - income2;
+                const incomeGrowthRate = income2 !== 0 ? ((income1 / income2) * 100) : (income1 > 0 ? 100 : 0);
+                const exportChange = export1 - export2;
+                const exportGrowthRate = export2 !== 0 ? ((export1 / export2) * 100) : (export1 > 0 ? 100 : 0);
+                
+                row += `${incomeChange >= 0 ? '+' : ''}${incomeChange.toFixed(3)},`;
+                row += `${incomeGrowthRate.toFixed(1)}%,`;
+                row += `${export1.toFixed(3)},`;
+                row += `${exportChange >= 0 ? '+' : ''}${exportChange.toFixed(3)},`;
+                row += `${exportGrowthRate.toFixed(1)}%`;
+            } else {
+                row += `+${income1.toFixed(3)},`;
+                row += `∞%,`;
+                row += `${export1.toFixed(3)},`;
+                row += `+${export1.toFixed(3)},`;
+                row += `∞%`;
+            }
+        } else {
+            if (district2) {
+                const income2 = district2.data.totalIncome || 0;
+                const export2 = district2.data.exportVolume || 0;
+                row += `0,0,0.000,`;
+                row += `-${income2.toFixed(3)},`;
+                row += `-100.0%,`;
+                row += `0.000,`;
+                row += `-${export2.toFixed(3)},`;
+                row += `-100.0%`;
+            } else {
+                row += `0,0,0.000,0.000,0.0%,0.000,0.000,0.0%`;
+            }
+        }
+        
+        row += `\n`;
+        return row;
+    }
+
+    async generateDistrictTemplateCSV(result) {
+        // For district comparison, use CSV format
+        const { period1, period2 } = result;
+        
+        const districtName = this.extractDistrictName(period1.key);
+        const period1Year = this.extractYear(period1.key);
+        const period1Quarter = this.extractQuarter(period1.key);
+        const period2Year = this.extractYear(period2.key);
+        const period2Quarter = this.extractQuarter(period2.key);
+        
+        // Calculate changes
+        const incomeChange = (period1.data.totalIncome || 0) - (period2.data.totalIncome || 0);
+        const incomeGrowthRate = period2.data.totalIncome ? (((period1.data.totalIncome || 0) / period2.data.totalIncome) * 100) : 0;
+        const exportChange = (period1.data.exportVolume || 0) - (period2.data.exportVolume || 0);
+        const exportGrowthRate = period2.data.exportVolume ? (((period1.data.exportVolume || 0) / period2.data.exportVolume) * 100) : 0;
+        
+        // Generate CSV content
+        let csvContent = '';
+        csvContent += `"${period1Year} йил ${this.getUzbekQuarterText(period1Quarter)} чорагининг IT-Park резидентларининг ҳудудлар кесимида хизматлар ҳажми ва экспорт кўрсаткичлари тўғрисида маълумот"\n`;
+        
+        // Period headers (first row)
+        csvContent += '"",';  // Empty cell for Ҳудуд
+        csvContent += `"${period2Year} йил ${this.getUzbekQuarterText(period2Quarter)}-чорак","","","",`;  // 4 columns for period2
+        csvContent += `"${period1Year} йил ${this.getUzbekQuarterText(period1Quarter)}-чорак","","","","","","",""\n`;  // 8 columns for period1
+        
+        // Column headers (second row)
+        csvContent += '"Ҳудуд",';
+        csvContent += '"Резидентлар сони","Ходимлар сони","Хизматлар ҳажми (млрд. сўм)","Экспорт (минг АҚШ доллари)",';
+        csvContent += '"Резидентлар сони","Ходимлар сони","Хизматлар ҳажми (млрд. сўм)","Хизматлар ўсиши (+/-)","Хизматлар ўсиш суръати (%)","Экспорт (минг АҚШ доллари)","Экспорт ўсиши (+/-)","Экспорт ўсиш суръати (%)"\n';
+        
+        // Data row (older period first, then newer period with calculations)
+        csvContent += `"${districtName}",`;
+        csvContent += `${period2.data.totalResidents || 0},${period2.data.employeeCount || 0},${(period2.data.totalIncome || 0).toFixed(3)},${(period2.data.exportVolume || 0).toFixed(3)},`;
+        csvContent += `${period1.data.totalResidents || 0},${period1.data.employeeCount || 0},${(period1.data.totalIncome || 0).toFixed(3)},`;
+        csvContent += `${incomeChange >= 0 ? '+' : ''}${incomeChange.toFixed(3)},${incomeGrowthRate.toFixed(1)}%,`;
+        csvContent += `${(period1.data.exportVolume || 0).toFixed(3)},${exportChange >= 0 ? '+' : ''}${exportChange.toFixed(3)},${exportGrowthRate.toFixed(1)}%\n`;
+        
+        return csvContent;
+    }
+
+    // Keep existing CSV method for backward compatibility
     async generateTemplateCSV(result) {
         const { period1, period2 } = result;
         
@@ -131,8 +219,8 @@ class ExportManager {
         csvContent += '"<b>Ҳудудлар</b>",';
         csvContent += '"<b>Резидентлар сони</b>","<b>Ходимлар сони</b>","<b>Хизматлар ҳажми (млрд. сум)</b>","<b>Экспорт (минг АҚШ доллари)</b>",';
         csvContent += '"<b>Резидентлар сони</b>","<b>Ходимлар сони</b>",';
-        csvContent += '"<b>Хизматлар ҳажми (млрд. сум)</b>","<b>Ўсиш (+/-)</b>","<b>Ўсиш сурьати (%)</b>",';
-        csvContent += '"<b>Экспорт (минг АҚШ доллари)</b>","<b>Ўсиш (+/-)</b>","<b>Ўсиш сурьати (%)</b>"\n';
+        csvContent += '"<b>Хизматлар ҳажми (млрд. сум)</b>","<b>Ўсиш (+/-)</b>","<b>Ўсиш суръати (%)</b>",';
+        csvContent += '"<b>Экспорт (минг АҚШ доллари)</b>","<b>Ўсиш (+/-)</b>","<b>Ўсиш суръати (%)</b>"\n';
         
         // Жами row
         csvContent += 'Жами:,';
@@ -153,13 +241,13 @@ class ExportManager {
                 const incomeChange = (regionData1.totalIncome || 0) - (regionData2.totalIncome || 0);
                 const incomeGrowthRate = regionData2.totalIncome ? ((incomeChange / regionData2.totalIncome) * 100) : 0;
                 csvContent += `${(regionData1.totalIncome || 0).toFixed(2)},`;
-                csvContent += `${incomeChange > 0 ? '+' : ''}${incomeChange.toFixed(2)},`;
+                csvContent += `${incomeChange > 0 ? '+' : ''}${incomeChange.toFixed(3)},`;
                 csvContent += `${incomeGrowthRate.toFixed(2)}%,`;
                 
                 const exportChange = (regionData1.exportVolume || 0) - (regionData2.exportVolume || 0);
                 const exportGrowthRate = regionData2.exportVolume ? ((exportChange / regionData2.exportVolume) * 100) : 0;
                 csvContent += `${(regionData1.exportVolume || 0).toFixed(2)},`;
-                csvContent += `${exportChange > 0 ? '+' : ''}${exportChange.toFixed(2)},`;
+                csvContent += `${exportChange > 0 ? '+' : ''}${exportChange.toFixed(3)},`;
                 csvContent += `${exportGrowthRate.toFixed(2)}%`;
             } else {
                 csvContent += `${(regionData1.totalIncome || 0).toFixed(2)},Data not saved,Data not saved,`;
@@ -174,24 +262,35 @@ class ExportManager {
         csvContent += `${districtName},`;
         csvContent += `${period2.data.totalResidents || 0},`;
         csvContent += `${period2.data.employeeCount || 0},`;
-        csvContent += `${(period2.data.totalIncome || 0).toFixed(2)},`;
-        csvContent += `${(period2.data.exportVolume || 0).toFixed(2)},`;
+        csvContent += `${(period2.data.totalIncome || 0).toFixed(3)},`;
+        csvContent += `${(period2.data.exportVolume || 0).toFixed(3)},`;
         csvContent += `${period1.data.totalResidents || 0},`;
         csvContent += `${period1.data.employeeCount || 0},`;
         
         const incomeChange = (period1.data.totalIncome || 0) - (period2.data.totalIncome || 0);
         const incomeGrowthRate = period2.data.totalIncome ? ((incomeChange / period2.data.totalIncome) * 100) : 0;
-        csvContent += `${(period1.data.totalIncome || 0).toFixed(2)},`;
-        csvContent += `${incomeChange > 0 ? '+' : ''}${incomeChange.toFixed(2)},`;
+        csvContent += `${(period1.data.totalIncome || 0).toFixed(3)},`;
+        csvContent += `${incomeChange > 0 ? '+' : ''}${incomeChange.toFixed(3)},`;
         csvContent += `${incomeGrowthRate.toFixed(2)}%,`;
         
         const exportChange = (period1.data.exportVolume || 0) - (period2.data.exportVolume || 0);
         const exportGrowthRate = period2.data.exportVolume ? ((exportChange / period2.data.exportVolume) * 100) : 0;
-        csvContent += `${(period1.data.exportVolume || 0).toFixed(2)},`;
-        csvContent += `${exportChange > 0 ? '+' : ''}${exportChange.toFixed(2)},`;
+        csvContent += `${(period1.data.exportVolume || 0).toFixed(3)},`;
+        csvContent += `${exportChange > 0 ? '+' : ''}${exportChange.toFixed(3)},`;
         csvContent += `${exportGrowthRate.toFixed(2)}%`;
         
         return csvContent;
+    }
+
+    // Helper methods (keep existing ones)
+    calculateTotals(districts) {
+        return districts.reduce((totals, district) => {
+            totals.residents += district.data.totalResidents || 0;
+            totals.employees += district.data.employeeCount || 0;
+            totals.income += district.data.totalIncome || 0;
+            totals.export += district.data.exportVolume || 0;
+            return totals;
+        }, { residents: 0, employees: 0, income: 0, export: 0 });
     }
 
     async generateUzbekReportDOCX(result) {
@@ -223,18 +322,106 @@ class ExportManager {
         const exportOld = data2.exportVolume || 0;
         const exportNew = data1.exportVolume || 0;
         
-        const residentsGrowthPercent = residentsOld ? ((residentsNew / residentsOld) * 100).toFixed(2) : '0.00';
-        const employeesGrowthPercent = employeesOld ? ((employeesNew / employeesOld) * 100).toFixed(2) : '0.00';
-        const incomeGrowthPercent = incomeOld ? ((incomeNew / incomeOld) * 100).toFixed(2) : '0.00';
-        const exportGrowthPercent = exportOld ? ((exportNew / exportOld) * 100).toFixed(2) : '0.00';
+        // Calculate changes
+        const residentsChange = residentsNew - residentsOld;
+        const employeesChange = employeesNew - employeesOld;
+        const incomeChange = incomeNew - incomeOld;
+        const exportChange = exportNew - exportOld;
         
-        let report = `1. АйТи Парк резидентлари сони ${year2} йил ${getQuarterText(quarter2)} ${residentsOld} тани ташкил этган бўлса, ${year1} йил ${getQuarterText(quarter1)} ${residentsNew} тага етказилди (ўсиш суръати ${residentsGrowthPercent} фоизни ташкил этди) 
+        const residentsGrowthPercent = residentsOld ? ((residentsNew / residentsOld) * 100).toFixed(1) : '0.0';
+        const employeesGrowthPercent = employeesOld ? ((employeesNew / employeesOld) * 100).toFixed(1) : '0.0';
+        const incomeGrowthPercent = incomeOld ? ((incomeNew / incomeOld) * 100).toFixed(1) : '0.0';
+        const exportGrowthPercent = exportOld ? ((exportNew / exportOld) * 100).toFixed(1) : '0.0';
+        
+        // Format changes with signs
+        const formatChange = (change) => change >= 0 ? `+${change}` : `${change}`;
+        const formatChangeFloat = (change) => change >= 0 ? `+${change.toFixed(1)}` : `${change.toFixed(1)}`;
+        
+        let report = `${year1} йил ${getQuarterText(quarter1)} чорагининг IT-Park резидентларининг ҳудудлар кесимида хизматлар ҳажми ва экспорт кўрсаткичлари тўғрисида МАЪЛУМОТ
 
-2. АйТи парк резидентлари томонидан иш билан таъминланганлар сони ${year2} йил ${getQuarterText(quarter2)} ${employeesOld} нафарни ташкил этган бўлса, ушбу кўрсаткич ${year1} йил ${getQuarterText(quarter1)} ${employeesNew} нафарга етди (ўсиш суръати ${employeesGrowthPercent} фоизни ташкил этди).
+АСОСИЙ КЎРСАТКИЧЛАР ТАҚҚОСЛАНМАСИ:
 
-3. Кўрсатилган хизматлар ҳажми ${year2} йил ${getQuarterText(quarter2)} ${incomeOld.toFixed(2)} млрд.сўм ни ташкил этган бўлса ${year1} йил ${getQuarterText(quarter1)} ${incomeNew.toFixed(2)} млрд.сўмга етиб, ${incomeGrowthPercent} фоизга ошди.
+1. РЕЗИДЕНТЛАР СОНИ:
+   - ${year2} йил ${getQuarterText(quarter2)}: ${residentsOld} та
+   - ${year1} йил ${getQuarterText(quarter1)}: ${residentsNew} та
+   - Ўзгариш: ${formatChange(residentsChange)} та (${residentsGrowthPercent}%)
 
-4. Шунингдек, ${year2} йил ${getQuarterText(quarter2)} резидентлар томонидан хизматлар экспорт ҳажми ${exportOld.toFixed(2)} млн.долларни ни ташкил этган бўлса, ушбу кўрсаткич ${year1} йил ${getQuarterText(quarter1)} ${exportNew.toFixed(2)} млн долларлик хизматлар экспорт қилинди.(ўсиш суръати ${exportGrowthPercent} фоизни ташкил этди)`;
+2. ХОДИМЛАР СОНИ:
+   - ${year2} йил ${getQuarterText(quarter2)}: ${employeesOld} нафар
+   - ${year1} йил ${getQuarterText(quarter1)}: ${employeesNew} нафар
+   - Ўзгариш: ${formatChange(employeesChange)} нафар (${employeesGrowthPercent}%)
+
+3. ХИЗМАТЛАР ҲАЖМИ:
+   - ${year2} йил ${getQuarterText(quarter2)}: ${incomeOld.toFixed(1)} млрд.сўм
+   - ${year1} йил ${getQuarterText(quarter1)}: ${incomeNew.toFixed(1)} млрд.сўм
+   - Ўзгариш: ${formatChangeFloat(incomeChange)} млрд.сўм (${incomeGrowthPercent}%)
+
+4. ЭКСПОРТ ҲАЖМИ:
+   - ${year2} йил ${getQuarterText(quarter2)}: ${exportOld.toFixed(1)} минг АҚШ доллари
+   - ${year1} йил ${getQuarterText(quarter1)}: ${exportNew.toFixed(1)} минг АҚШ доллари
+   - Ўзгариш: ${formatChangeFloat(exportChange)} минг АҚШ доллари (${exportGrowthPercent}%)
+
+ХУЛОСА:
+
+АйТи Парк резидентларининг фаолияти таҳлили кўрсатдики:
+• Резидентлар сони ${residentsGrowthPercent}% ${residentsChange >= 0 ? 'ўсиш' : 'камайиш'} кўрсатди
+• Ходимлар сони ${employeesGrowthPercent}% ${employeesChange >= 0 ? 'ўсиш' : 'камайиш'} кўрсатди  
+• Хизматлар ҳажми ${incomeGrowthPercent}% ${incomeChange >= 0 ? 'ўсиш' : 'камайиш'} кўрсатди
+• Экспорт ҳажми ${exportGrowthPercent}% ${exportChange >= 0 ? 'ўсиш' : 'камайиш'} кўрсатди`;
+
+        // Add company data section
+        if (result.companyChanges) {
+            const { added, removed, changed } = result.companyChanges;
+            
+            report += `\n\nКОМПАНИЯЛАР БЎЙИЧА ТАҲЛИЛ:`;
+            
+            if (added.length > 0) {
+                report += `\n\nЯНГИ ҚЎШИЛГАН КОМПАНИЯЛАР (${added.length} та):`;
+                added.forEach((company, index) => {
+                    report += `\n${index + 1}. ${company.name}`;
+                    if (company.employees) {
+                        report += ` - ${company.employees} нафар ходим`;
+                    }
+                    if (company.direction) {
+                        report += ` (${company.direction})`;
+                    }
+                });
+            }
+            
+            if (removed.length > 0) {
+                report += `\n\nЧИҚИБ КЕТГАН КОМПАНИЯЛАР (${removed.length} та):`;
+                removed.forEach((company, index) => {
+                    report += `\n${index + 1}. ${company.name}`;
+                    if (company.employees) {
+                        report += ` - ${company.employees} нафар ходим`;
+                    }
+                    if (company.direction) {
+                        report += ` (${company.direction})`;
+                    }
+                });
+            }
+            
+            if (changed.length > 0) {
+                report += `\n\nХОДИМЛАР СОНИДА ЎЗГАРИШ БЎЛГАН КОМПАНИЯЛАР (${changed.length} та):`;
+                changed.forEach((company, index) => {
+                    const changeText = company.change >= 0 ? `+${company.change}` : `${company.change}`;
+                    report += `\n${index + 1}. ${company.name}: ${company.employeesOld} → ${company.employeesNew} нафар (${changeText})`;
+                    if (company.direction) {
+                        report += ` (${company.direction})`;
+                    }
+                });
+            }
+            
+            // Summary of company changes
+            const totalCompaniesOld = (data2.companies || []).length;
+            const totalCompaniesNew = (data1.companies || []).length;
+            const companyChange = totalCompaniesNew - totalCompaniesOld;
+            
+            report += `\n\nКОМПАНИЯЛАР СОНИ ЎЗГАРИШИ:`;
+            report += `\n- ${year2} йил ${getQuarterText(quarter2)}: ${totalCompaniesOld} та компания`;
+            report += `\n- ${year1} йил ${getQuarterText(quarter1)}: ${totalCompaniesNew} та компания`;
+            report += `\n- Ўзгариш: ${formatChange(companyChange)} та компания`;
+        }
         
         return report;
     }
@@ -245,12 +432,13 @@ class ExportManager {
         this.downloadFile(blob, filename);
     }
 
+
     downloadWordDocument(textContent, filename) {
         let formattedContent = textContent
             .replace(/(\d+(?:\.\d+)?)/g, '<span style="color: red; font-weight: bold;">$1</span>')
             .replace(/(фоиз[^\s]*)/g, '<span style="color: blue; font-weight: bold;">$1</span>')
             .replace(/(%)/g, '<span style="color: blue; font-weight: bold;">$1</span>')
-            .replace(/(млрд\.сўм|млн\.доллар)/g, '<span style="color: blue; font-weight: bold;">$1</span>');
+            .replace(/(млрд\.сўм|минг АҚШ доллари)/g, '<span style="color: blue; font-weight: bold;">$1</span>');
 
         const htmlContent = `<!DOCTYPE html>
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
@@ -267,7 +455,7 @@ p { margin: 0; margin-bottom: 15pt; text-align: justify; text-indent: 1.25cm; }
 </style>
 </head>
 <body>
-<p class="header">Datapark - АйТи Парк Ҳисоботи</p>
+<p class="header">IT-Park ҳисоботи - Datapark</p>
 ${formattedContent.split('\n').map(line => line.trim() ? `<p>${line}</p>` : '<p>&nbsp;</p>').join('')}
 </body>
 </html>`;
@@ -309,16 +497,17 @@ ${formattedContent.split('\n').map(line => line.trim() ? `<p>${line}</p>` : '<p>
     }
 
     extractQuarter(key) {
-        const match = key.match(/Q(\d)/);
-        return match ? `Q${match[1]}` : 'Q1';
+        const match = key.match(/(Q\d|ALL)/);
+        return match ? match[1] : 'Q1';
     }
 
     getUzbekQuarterText(quarter) {
         switch(quarter) {
-            case 'Q1': return '1-чорак';
-            case 'Q2': return '2-чорак';
-            case 'Q3': return '3-чорак';
-            case 'Q4': return '4-чорак';
+            case 'Q1': return '1';
+            case 'Q2': return '2';
+            case 'Q3': return '3';
+            case 'Q4': return '4';
+            case 'ALL': return 'бутун йил';
             default: return quarter;
         }
     }
