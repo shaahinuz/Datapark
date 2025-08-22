@@ -14,7 +14,7 @@
         <!-- NEW: Current Data Section -->
         <div class="section">
              <button id="show-current-btn" class="btn btn-primary" aria-label="Показать данные с текущей страницы дашборда">Показать данные с экрана</button>
-             <div id="current-data-section" style="display: none; margin-top: 15px;">
+             <div id="current-data-section" class="hidden" style="margin-top: 15px;">
                 <!-- Populated by JavaScript -->
              </div>
         </div>
@@ -40,7 +40,7 @@
                         </label>
                     </div>
                     
-                    <div id="district-input-group" style="display: none;">
+                    <div id="district-input-group" class="hidden">
                         <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
                             <input type="text" id="district-name-input" placeholder="Asaka, Andijon, Bekobod..." 
                                    list="district-suggestions"
@@ -69,7 +69,7 @@
                             <option value="Yangiyo'l">Yangiyo'l</option>
                         </datalist>
                         
-                        <div id="detected-district-info" style="display: none; font-size: 11px; color: #2d5aa0; margin-bottom: 4px;">
+                        <div id="detected-district-info" class="hidden" style="font-size: 11px; color: #2d5aa0; margin-bottom: 4px;">
                             ✅ Обнаружен район: <strong id="detected-district-name"></strong>
                         </div>
                         <small style="font-size: 11px; color: #718096; display: block;">
@@ -101,7 +101,7 @@
                         <option value="">Выберите период...</option>
                     </select>
                 </div>
-                <div id="regional-data-display" style="display: none; margin-top: 12px;">
+                <div id="regional-data-display" class="hidden" style="margin-top: 12px;">
                     <!-- Populated by JavaScript -->
                 </div>
             </details>
@@ -124,7 +124,7 @@
         </div>
 
         <!-- Results Section -->
-        <div class="section" id="comparison-section" style="display: none;">
+        <div class="section hidden" id="comparison-section">
             <h3>Результаты сравнения</h3>
             <div class="comparison-grid" id="comparison-data">
                 <!-- Populated by JavaScript -->

@@ -23,6 +23,54 @@ const domCache = {
     }
 };
 
+// Utility function for debouncing user input
+function debounce(func, delay) {
+    let timeoutId;
+    return function(...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => func.apply(this, args), delay);
+    };
+}
+
+// Utility functions for loading skeletons
+const skeletonUtils = {
+    // Show table skeleton with specified number of rows
+    showTableSkeleton(containerId, rows = 5) {
+        const container = domCache.get(containerId);
+        if (!container) return;
+        
+        let skeletonHTML = '<div class="skeleton-table">';
+        skeletonHTML += '<div class="skeleton skeleton-header"></div>';
+        for(let i = 0; i < rows; i++) {
+            skeletonHTML += '<div class="skeleton skeleton-row"></div>';
+        }
+        skeletonHTML += '</div>';
+        container.innerHTML = skeletonHTML;
+    },
+    
+    // Show text skeleton for loading states
+    showTextSkeleton(containerId, lines = 3) {
+        const container = domCache.get(containerId);
+        if (!container) return;
+        
+        let skeletonHTML = '<div class="skeleton-text-container">';
+        for(let i = 0; i < lines; i++) {
+            const sizeClass = i % 3 === 0 ? 'long' : i % 3 === 1 ? 'medium' : 'short';
+            skeletonHTML += `<div class="skeleton skeleton-text ${sizeClass}"></div>`;
+        }
+        skeletonHTML += '</div>';
+        container.innerHTML = skeletonHTML;
+    },
+    
+    // Clear skeleton and restore content
+    clearSkeleton(containerId) {
+        const container = domCache.get(containerId);
+        if (container) {
+            container.innerHTML = '';
+        }
+    }
+};
+
 // --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Extension popup loaded, DOM ready');
@@ -82,24 +130,34 @@ function setupEventListeners() {
         }
     });
     
-    // Add event listener for district filter dropdown
+    // Add event listener for district filter dropdown with debouncing
     const districtFilter = domCache.get('district-filter-select');
     if (districtFilter) {
+        // Create debounced version of the filter function
+        const debouncedDistrictFilter = debounce((selectedDistrict) => {
+            uiManager.loadFilteredDistrictsIntoDropdowns(selectedDistrict);
+        }, 300); // Wait 300ms after user stops selecting
+        
         districtFilter.addEventListener('change', (e) => {
             const selectedDistrict = e.target.value;
-            uiManager.loadFilteredDistrictsIntoDropdowns(selectedDistrict);
+            debouncedDistrictFilter(selectedDistrict);
         });
-        console.log('✓ District filter event listener added');
+        console.log('✓ District filter event listener added (with debouncing)');
     }
     
-    // Add event listener for period filter dropdown (regional viewer)
+    // Add event listener for period filter dropdown (regional viewer) with debouncing
     const periodFilter = domCache.get('period-filter-select');
     if (periodFilter) {
+        // Create debounced version for smoother regional data loading
+        const debouncedPeriodFilter = debounce((selectedPeriod) => {
+            handlePeriodFilterChange(selectedPeriod);
+        }, 200); // Shorter delay for immediate feedback
+        
         periodFilter.addEventListener('change', (e) => {
             const selectedPeriod = e.target.value;
-            handlePeriodFilterChange(selectedPeriod);
+            debouncedPeriodFilter(selectedPeriod);
         });
-        console.log('✓ Period filter event listener added');
+        console.log('✓ Period filter event listener added (with debouncing)');
     }
     
     // Add event listeners for save mode radio buttons
@@ -107,13 +165,16 @@ function setupEventListeners() {
     saveModeRadios.forEach(radio => {
         radio.addEventListener('change', (e) => {
             const districtGroup = domCache.get('district-input-group');
+            const detectedInfo = domCache.get('detected-district-info');
+            const districtInput = domCache.get('district-name-input');
+            
             if (e.target.value === 'district') {
-                districtGroup.style.display = 'block';
+                districtGroup.classList.remove('hidden');
+                districtGroup.classList.add('visible');
             } else {
-                districtGroup.style.display = 'none';
-                // Clear any detected district info
-                domCache.get('detected-district-info').style.display = 'none';
-                domCache.get('district-name-input').value = '';
+                districtGroup.classList.add('hidden');
+                detectedInfo.classList.add('hidden');
+                districtInput.value = '';
             }
         });
     });
@@ -255,13 +316,20 @@ async function handleDiagnose() {
 }
 
 async function handleCompare() {
-    const key1 = document.getElementById('period1-select').value;
-    const key2 = document.getElementById('period2-select').value;
+    const key1 = domCache.get('period1-select').value;
+    const key2 = domCache.get('period2-select').value;
 
     if (!key1 || !key2) {
         uiManager.showStatus('Пожалуйста, выберите два периода для сравнения.', 'error');
         return;
     }
+    
+    // Show loading skeleton for comparison results
+    const comparisonSection = domCache.get('comparison-section');
+    comparisonSection.classList.remove('hidden');
+    comparisonSection.classList.add('fade-in');
+    skeletonUtils.showTableSkeleton('comparison-data', 6);
+    skeletonUtils.showTextSkeleton('company-comparison-section', 4);
     
     uiManager.showStatus('Сравниваю данные...', 'info');
     try {
@@ -476,10 +544,17 @@ async function handleAnalyzeCompanyHistory() {
 }
 
 async function handlePeriodFilterChange(selectedPeriod) {
+    const regionalDisplay = domCache.get('regional-data-display');
+    
     if (!selectedPeriod) {
-        document.getElementById('regional-data-display').style.display = 'none';
+        regionalDisplay.classList.add('hidden');
         return;
     }
+    
+    // Show loading skeleton immediately
+    regionalDisplay.classList.remove('hidden');
+    regionalDisplay.classList.add('fade-in');
+    skeletonUtils.showTableSkeleton('regional-data-display', 4);
     
     try {
         const allData = await storageManager.getAllData();

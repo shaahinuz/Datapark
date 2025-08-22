@@ -97,6 +97,155 @@ kbd {
     }
 }
 
+/* Loading skeleton animations */
+@keyframes skeleton-loading {
+    0% {
+        background-position: -200px 0;
+    }
+    100% {
+        background-position: calc(200px + 100%) 0;
+    }
+}
+
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200px 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: 4px;
+}
+
+.skeleton-table {
+    width: 100%;
+    margin: 12px 0;
+}
+
+.skeleton-row {
+    height: 40px;
+    margin: 8px 0;
+    border-radius: 6px;
+}
+
+.skeleton-header {
+    height: 30px;
+    margin: 8px 0 16px 0;
+    border-radius: 6px;
+    width: 60%;
+}
+
+.skeleton-text {
+    height: 16px;
+    margin: 4px 0;
+    border-radius: 4px;
+}
+
+.skeleton-text.short {
+    width: 40%;
+}
+
+.skeleton-text.medium {
+    width: 60%;
+}
+
+.skeleton-text.long {
+    width: 80%;
+}
+
+/* Utility classes for common styles */
+.hidden {
+    display: none !important;
+}
+
+.visible {
+    display: block !important;
+}
+
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+    cursor: wait;
+}
+
+.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.success-state {
+    border-left: 4px solid #38a169;
+    background-color: #f0fff4;
+}
+
+.error-state {
+    border-left: 4px solid #e53e3e;
+    background-color: #fef5e7;
+}
+
+.info-state {
+    border-left: 4px solid #3182ce;
+    background-color: #ebf8ff;
+}
+
+.warning-state {
+    border-left: 4px solid #d69e2e;
+    background-color: #fffaf0;
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+.fade-out {
+    animation: fadeOut 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-left {
+    text-align: left;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.flex {
+    display: flex;
+}
+
+.flex-column {
+    flex-direction: column;
+}
+
+.flex-center {
+    justify-content: center;
+    align-items: center;
+}
+
+.gap-small {
+    gap: 4px;
+}
+
+.gap-medium {
+    gap: 8px;
+}
+
+.gap-large {
+    gap: 16px;
+}
+
 /* Styles for collapsible save section */
 .save-section summary {
     font-size: 14px;
