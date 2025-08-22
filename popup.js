@@ -9,6 +9,20 @@ let districtComparisonResult = {};
 // Browser API compatibility
 const browserAPI = typeof chrome !== 'undefined' ? chrome : browser;
 
+// Cache frequently used DOM elements
+const domCache = {
+    elements: {},
+    get(id) {
+        if (!this.elements[id]) {
+            this.elements[id] = document.getElementById(id);
+        }
+        return this.elements[id];
+    },
+    clear() {
+        this.elements = {};
+    }
+};
+
 // --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Extension popup loaded, DOM ready');
@@ -51,7 +65,7 @@ function setupEventListeners() {
     ];
     
     buttons.forEach(({ id, handler }) => {
-        const element = document.getElementById(id);
+        const element = domCache.get(id);
         if (element) {
             element.addEventListener('click', (e) => {
                 console.log(`Button clicked: ${id}`);
@@ -59,7 +73,7 @@ function setupEventListeners() {
                     handler();
                 } catch (error) {
                     console.error(`Error in ${id} handler:`, error);
-                    uiManager.showStatus(`Ошибка: ${error.message}`, 'error');
+                    uiManager.showStatus(`Ошибка выполнения операции: ${error.message}`, 'error');
                 }
             });
             console.log(`✓ Event listener added for ${id}`);
@@ -69,7 +83,7 @@ function setupEventListeners() {
     });
     
     // Add event listener for district filter dropdown
-    const districtFilter = document.getElementById('district-filter-select');
+    const districtFilter = domCache.get('district-filter-select');
     if (districtFilter) {
         districtFilter.addEventListener('change', (e) => {
             const selectedDistrict = e.target.value;
@@ -79,7 +93,7 @@ function setupEventListeners() {
     }
     
     // Add event listener for period filter dropdown (regional viewer)
-    const periodFilter = document.getElementById('period-filter-select');
+    const periodFilter = domCache.get('period-filter-select');
     if (periodFilter) {
         periodFilter.addEventListener('change', (e) => {
             const selectedPeriod = e.target.value;
@@ -92,14 +106,14 @@ function setupEventListeners() {
     const saveModeRadios = document.querySelectorAll('input[name="save-mode"]');
     saveModeRadios.forEach(radio => {
         radio.addEventListener('change', (e) => {
-            const districtGroup = document.getElementById('district-input-group');
+            const districtGroup = domCache.get('district-input-group');
             if (e.target.value === 'district') {
                 districtGroup.style.display = 'block';
             } else {
                 districtGroup.style.display = 'none';
                 // Clear any detected district info
-                document.getElementById('detected-district-info').style.display = 'none';
-                document.getElementById('district-name-input').value = '';
+                domCache.get('detected-district-info').style.display = 'none';
+                domCache.get('district-name-input').value = '';
             }
         });
     });
@@ -136,7 +150,7 @@ async function handleShowCurrentData() {
         }
     } catch (error) {
         console.error('Error showing current data:', error);
-        uiManager.showStatus(`Ошибка: ${error.message}`, 'error');
+        uiManager.showStatus(`Ошибка загрузки данных: ${error.message}`, 'error');
     }
 }
 
@@ -186,7 +200,7 @@ async function handleSaveData() {
         console.error('Error saving data:', error);
         notificationOverlay.hide(savingNotificationId);
         notificationOverlay.showError(`Ошибка сохранения: ${error.message}`);
-        uiManager.showStatus(`Ошибка сохранения: ${error.message}`, 'error');
+        uiManager.showStatus(`Ошибка сохранения данных: ${error.message}`, 'error');
     }
 }
 
@@ -220,7 +234,7 @@ async function handleClearCache() {
         
     } catch (error) {
         console.error('Error clearing cache:', error);
-        uiManager.showStatus(`Ошибка очистки кэша: ${error.message}`, 'error');
+        uiManager.showStatus(`Ошибка очистки данных: ${error.message}`, 'error');
     }
 }
 
@@ -236,7 +250,7 @@ async function handleDiagnose() {
         
     } catch (error) {
         console.error('Diagnosis error:', error);
-        uiManager.showStatus(`Ошибка диагностики: ${error.message}`, 'error');
+        uiManager.showStatus(`Ошибка диагностики страницы: ${error.message}`, 'error');
     }
 }
 
@@ -269,7 +283,7 @@ async function handleCompare() {
         uiManager.showStatus('Сравнение готово.', 'success');
     } catch (error) {
         console.error('Error comparing data:', error);
-        uiManager.showStatus(`Ошибка сравнения: ${error.message}`, 'error');
+        uiManager.showStatus(`Ошибка сравнения периодов: ${error.message}`, 'error');
     }
 }
 

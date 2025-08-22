@@ -72,7 +72,13 @@ class NotificationOverlay {
             word-wrap: break-word;
         `;
 
-        notification.innerHTML = `${icon} ${message}`;
+        // Use textContent for security - create icon and message separately
+        const iconSpan = document.createElement('span');
+        iconSpan.textContent = icon;
+        const messageSpan = document.createElement('span');
+        messageSpan.textContent = ` ${message}`;
+        notification.appendChild(iconSpan);
+        notification.appendChild(messageSpan);
 
         // Add click to dismiss
         notification.addEventListener('click', () => {

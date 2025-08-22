@@ -13,7 +13,7 @@
 
         <!-- NEW: Current Data Section -->
         <div class="section">
-             <button id="show-current-btn" class="btn btn-primary">Показать данные с экрана</button>
+             <button id="show-current-btn" class="btn btn-primary" aria-label="Показать данные с текущей страницы дашборда">Показать данные с экрана</button>
              <div id="current-data-section" style="display: none; margin-top: 15px;">
                 <!-- Populated by JavaScript -->
              </div>
@@ -79,9 +79,9 @@
                     </div>
                 </div>
                 
-                <button id="save-data-btn" class="btn btn-primary">💾 Сохранить данные с экрана</button>
-                <button id="clear-cache-btn" class="btn btn-danger" style="margin-top: 8px;">🗑️ Очистить весь кэш</button>
-                <button id="diagnose-btn" class="btn btn-info" style="margin-top: 4px;">🔍 Диагностика страницы</button>
+                <button id="save-data-btn" class="btn btn-primary" aria-label="Сохранить данные с текущей страницы">💾 Сохранить данные с экрана</button>
+                <button id="clear-cache-btn" class="btn btn-danger" style="margin-top: 8px;" aria-label="Очистить все сохраненные данные">🗑️ Очистить весь кэш</button>
+                <button id="diagnose-btn" class="btn btn-info" style="margin-top: 4px;" aria-label="Диагностировать содержимое страницы">🔍 Диагностика страницы</button>
             </div>
         </details>
 
@@ -96,8 +96,8 @@
                     🗺️ Просмотр регионов по периоду
                 </summary>
                 <div class="form-group" style="margin-top: 8px;">
-                    <label>Выберите период для просмотра всех регионов:</label>
-                    <select id="period-filter-select">
+                    <label for="period-filter-select">Выберите период для просмотра всех регионов:</label>
+                    <select id="period-filter-select" aria-label="Выберите период для просмотра региональных данных">
                         <option value="">Выберите период...</option>
                     </select>
                 </div>
@@ -108,19 +108,19 @@
             
             <div class="period-select">
                 <div class="form-group">
-                    <label>Период 1 (Новый):</label>
-                    <select id="period1-select">
+                    <label for="period1-select">Период 1 (Новый):</label>
+                    <select id="period1-select" aria-label="Выберите первый период для сравнения">
                         <option value="">Нет сохраненных данных</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Период 2 (Старый):</label>
-                    <select id="period2-select">
+                    <label for="period2-select">Период 2 (Старый):</label>
+                    <select id="period2-select" aria-label="Выберите второй период для сравнения">
                         <option value="">Нет сохраненных данных</option>
                     </select>
                 </div>
             </div>
-            <button id="compare-btn" class="btn btn-primary">Сравнить</button>
+            <button id="compare-btn" class="btn btn-primary" aria-label="Сравнить выбранные периоды">Сравнить</button>
         </div>
 
         <!-- Results Section -->
@@ -134,10 +134,10 @@
                  <!-- Populated by JavaScript -->
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px;">
-                <button id="generate-csv-btn" class="btn btn-secondary">
+                <button id="generate-csv-btn" class="btn btn-secondary" aria-label="Экспортировать результаты сравнения в CSV файл">
                     📊 Сгенерировать CSV
                 </button>
-                <button id="generate-docx-btn" class="btn btn-primary">
+                <button id="generate-docx-btn" class="btn btn-primary" aria-label="Экспортировать результаты сравнения в DOCX документ">
                     📄 Сгенерировать DOCX
                 </button>
             </div>
