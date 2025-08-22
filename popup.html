@@ -13,7 +13,10 @@
 
         <!-- NEW: Current Data Section -->
         <div class="section">
-             <button id="show-current-btn" class="btn btn-primary" aria-label="Показать данные с текущей страницы дашборда">Показать данные с экрана</button>
+             <button id="show-current-btn" class="btn btn-primary" aria-label="Показать данные с текущей страницы дашборда">
+                    <span class="icon icon-eye"></span>
+                    Показать данные с экрана
+                </button>
              <div id="current-data-section" class="hidden" style="margin-top: 15px;">
                 <!-- Populated by JavaScript -->
              </div>
@@ -46,7 +49,8 @@
                                    list="district-suggestions"
                                    style="flex: 1; padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 13px; box-sizing: border-box;">
                             <button id="detect-district-btn" type="button" class="btn btn-info" style="font-size: 11px; padding: 6px 10px;">
-                                🔍 Определить
+                                <span class="icon icon-location"></span>
+                                Определить
                             </button>
                         </div>
                         
@@ -79,9 +83,18 @@
                     </div>
                 </div>
                 
-                <button id="save-data-btn" class="btn btn-primary" aria-label="Сохранить данные с текущей страницы">💾 Сохранить данные с экрана</button>
-                <button id="clear-cache-btn" class="btn btn-danger" style="margin-top: 8px;" aria-label="Очистить все сохраненные данные">🗑️ Очистить весь кэш</button>
-                <button id="diagnose-btn" class="btn btn-info" style="margin-top: 4px;" aria-label="Диагностировать содержимое страницы">🔍 Диагностика страницы</button>
+                <button id="save-data-btn" class="btn btn-primary" aria-label="Сохранить данные с текущей страницы">
+                    <span class="icon icon-save"></span>
+                    Сохранить данные с экрана
+                </button>
+                <button id="clear-cache-btn" class="btn btn-danger" style="margin-top: 8px;" aria-label="Очистить все сохраненные данные">
+                    <span class="icon icon-delete"></span>
+                    Очистить весь кэш
+                </button>
+                <button id="diagnose-btn" class="btn btn-info" style="margin-top: 4px;" aria-label="Диагностировать содержимое страницы">
+                    <span class="icon icon-search"></span>
+                    Диагностика страницы
+                </button>
             </div>
         </details>
 
@@ -120,7 +133,10 @@
                     </select>
                 </div>
             </div>
-            <button id="compare-btn" class="btn btn-primary" aria-label="Сравнить выбранные периоды">Сравнить</button>
+            <button id="compare-btn" class="btn btn-primary" aria-label="Сравнить выбранные периоды">
+                <span class="icon icon-compare"></span>
+                Сравнить
+            </button>
         </div>
 
         <!-- Results Section -->
@@ -135,10 +151,12 @@
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px;">
                 <button id="generate-csv-btn" class="btn btn-secondary" aria-label="Экспортировать результаты сравнения в CSV файл">
-                    📊 Сгенерировать CSV
+                    <span class="icon icon-table"></span>
+                    CSV Отчёт
                 </button>
                 <button id="generate-docx-btn" class="btn btn-primary" aria-label="Экспортировать результаты сравнения в DOCX документ">
-                    📄 Сгенерировать DOCX
+                    <span class="icon icon-document"></span>
+                    DOCX Отчёт
                 </button>
             </div>
         </div>
@@ -147,7 +165,10 @@
         <div class="section">
             <h3>3. История изменений компаний</h3>
             <p class="description">Анализ изменений компаний по всем сохраненным периодам.</p>
-            <button id="analyze-company-history-btn" class="btn btn-primary">📈 Проанализировать историю</button>
+            <button id="analyze-company-history-btn" class="btn btn-primary">
+                <span class="icon icon-analytics"></span>
+                Проанализировать историю
+            </button>
         </div>
 
         <!-- Company History Results Section -->
@@ -187,7 +208,10 @@
                     </select>
                 </div>
             </div>
-            <button id="compare-districts-btn" class="btn btn-primary">Сравнить районы</button>
+            <button id="compare-districts-btn" class="btn btn-primary">
+                <span class="icon icon-compare"></span>
+                Сравнить районы
+            </button>
         </div>
 
         <!-- District Results Section -->
@@ -202,7 +226,8 @@
             </div>
             <div style="margin-top: 16px;">
                 <button id="generate-district-csv-btn" class="btn btn-secondary">
-                    📊 Сгенерировать CSV (районы)
+                    <span class="icon icon-table"></span>
+                    CSV Отчёт (районы)
                 </button>
             </div>
         </div>
@@ -212,7 +237,7 @@
         <div id="status" class="status"></div>
         
         <!-- Attribution -->
-        <div style="text-align: center; margin-top: 20px; padding: 10px; border-top: 1px solid #e2e8f0; color: white; font-size: 12px;">
+        <div class="attribution">
             Datapark by <strong>@shaahinuz</strong>
         </div>
     </div>

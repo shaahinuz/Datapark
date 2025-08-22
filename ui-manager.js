@@ -151,6 +151,7 @@ class UIManager {
         }
 
         section.innerHTML = html;
+        section.classList.remove('hidden');
         section.style.display = 'block';
     }
 

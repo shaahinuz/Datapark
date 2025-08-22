@@ -45,17 +45,19 @@ if (window.location.hostname.includes('it-park.uz')) {
         detectBtn.textContent = '🔍 Найти данные';
         detectBtn.title = 'Определить текущий район/регион';
         detectBtn.style.cssText = `
-            background: #FF9800;
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
             color: white;
             border: none;
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-size: 12px;
-            font-weight: 500;
+            border-radius: 12px;
+            padding: 12px 18px;
+            font-size: 13px;
+            font-weight: 600;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            transition: all 0.2s ease;
-            min-width: 100px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-width: 120px;
             text-align: center;
         `;
         
@@ -69,14 +71,16 @@ if (window.location.hostname.includes('it-park.uz')) {
             background: #9E9E9E;
             color: white;
             border: none;
-            border-radius: 8px;
-            padding: 8px 12px;
-            font-size: 12px;
-            font-weight: 500;
+            border-radius: 12px;
+            padding: 12px 18px;
+            font-size: 13px;
+            font-weight: 600;
             cursor: not-allowed;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            transition: all 0.2s ease;
-            min-width: 100px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-width: 120px;
             text-align: center;
         `;
         
@@ -141,7 +145,7 @@ if (window.location.hostname.includes('it-park.uz')) {
                 }
             } else {
                 detectedDistrictName = null;
-                showNotification('Данные не определены ❌\n\nПроверьте:\n• Находитесь ли вы на странице конкретного района/региона\n• Выбран ли район в фильтрах\n• Есть ли название в заголовке страницы', 'warning');
+                showNotification('Данные не определены\n\nПроверьте:\n• Находитесь ли вы на странице конкретного района/региона\n• Выбран ли район в фильтрах\n• Есть ли название в заголовке страницы', 'warning');
             }
         } catch (error) {
             console.error('❌ Detection error:', error);
