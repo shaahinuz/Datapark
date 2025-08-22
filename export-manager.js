@@ -501,6 +501,82 @@ ${formattedContent.split('\n').map(line => line.trim() ? `<p>${line}</p>` : '<p>
         return match ? match[1] : 'Q1';
     }
 
+    generateCompanyHistoryCSV(historyData, stats) {
+        const { companyHistory, timeline } = historyData;
+        
+        let csvContent = '';
+        
+        // Title
+        csvContent += '"История изменений компаний IT-Park"\n\n';
+        
+        // Summary statistics
+        csvContent += '"ОБЩАЯ СТАТИСТИКА:"\n';
+        csvContent += `"Всего уникальных компаний:",${stats.totalUniqueCompanies}\n`;
+        csvContent += `"Новых компаний:",${stats.newCompanies}\n`;
+        csvContent += `"Ушедших компаний:",${stats.removedCompanies}\n`;
+        csvContent += `"Компаний с изменениями:",${stats.changedCompanies}\n`;
+        csvContent += `"Общее количество изменений сотрудников:",${stats.totalEmployeeChanges}\n\n`;
+        
+        // Direction breakdown
+        if (Object.keys(stats.directionBreakdown).length > 0) {
+            csvContent += '"РАСПРЕДЕЛЕНИЕ ПО НАПРАВЛЕНИЯМ:"\n';
+            Object.entries(stats.directionBreakdown)
+                .sort(([,a], [,b]) => b - a)
+                .forEach(([direction, count]) => {
+                    csvContent += `"${direction}",${count}\n`;
+                });
+            csvContent += '\n';
+        }
+        
+        // Timeline of changes
+        csvContent += '"ХРОНОЛОГИЯ ИЗМЕНЕНИЙ:"\n';
+        csvContent += '"Период","Компания","Направление","Событие","Детали","Сотрудники"\n';
+        
+        timeline.forEach(event => {
+            let eventText = '';
+            let details = '';
+            let employees = '';
+            
+            switch (event.type) {
+                case 'added':
+                    eventText = 'Новая компания';
+                    details = 'Получила статус резидента';
+                    employees = `+${event.employees}`;
+                    break;
+                case 'changed':
+                    eventText = 'Изменение сотрудников';
+                    details = `Изменилось с ${event.employeesOld} до ${event.employeesNew}`;
+                    employees = `${event.change > 0 ? '+' : ''}${event.change}`;
+                    break;
+                case 'removed':
+                    eventText = 'Лишена статуса';
+                    details = 'Потеряла статус резидента';
+                    employees = `-${event.employees}`;
+                    break;
+            }
+            
+            csvContent += `"${event.period}","${event.company}","${event.direction || 'Не указано'}","${eventText}","${details}","${employees}"\n`;
+        });
+        
+        csvContent += '\n';
+        
+        // Company summary
+        csvContent += '"СВОДКА ПО КОМПАНИЯМ:"\n';
+        csvContent += '"Компания","Направление","Первое появление","Последнее изменение","Всего периодов","Общий рост сотрудников"\n';
+        
+        companyHistory
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .forEach(company => {
+                const firstEmployees = company.periods[0]?.employees || 0;
+                const lastEmployees = company.periods[company.periods.length - 1]?.employees || 0;
+                const totalGrowth = lastEmployees - firstEmployees;
+                
+                csvContent += `"${company.name}","${company.direction || 'Не указано'}","${company.firstSeen}","${company.lastSeen}",${company.periods.length},${totalGrowth > 0 ? '+' : ''}${totalGrowth}\n`;
+            });
+        
+        return csvContent;
+    }
+
     getUzbekQuarterText(quarter) {
         switch(quarter) {
             case 'Q1': return '1';

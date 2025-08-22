@@ -319,14 +319,10 @@ if (window.location.hostname.includes('it-park.uz')) {
                 let detectedDistrict = null;
                 const detectionLog = [];
                 
-                console.log('🔍 DISTRICT DETECTION DEBUG:');
-                console.log('URL:', window.location.href);
-                console.log('Page title:', document.title);
                 
                 // Method 1: Check URL for district parameter  
                 const urlParams = new URLSearchParams(window.location.search);
                 const districtParam = urlParams.get('district') || urlParams.get('rayon') || urlParams.get('tuman') || urlParams.get('region') || urlParams.get('soato_name');
-                console.log('URL params:', Object.fromEntries(urlParams));
                 if (districtParam && districtParam !== 'all' && districtParam !== 'null' && districtParam !== '') {
                     detectedDistrict = districtParam;
                     detectionLog.push(`URL param: ${districtParam}`);
@@ -452,9 +448,24 @@ if (window.location.hostname.includes('it-park.uz')) {
                 console.log('Detected district:', detectedDistrict);
                 console.log('Detection log:', detectionLog);
                 
+                // Create period key with region name if detected
+                let periodKey = `${year}-${quarter}`;
+                if (detectedDistrict) {
+                    // Check if this is a region (область)
+                    const isRegion = detectedDistrict.includes('область') || 
+                                   detectedDistrict.includes('обл.') ||
+                                   detectedDistrict === 'Андижанская область';
+                    
+                    if (isRegion) {
+                        // Use only first 3 characters of region name
+                        let regionShort = detectedDistrict.substring(0, 3);
+                        periodKey = `${regionShort}-${year}-${quarter}`;
+                    }
+                }
+                
                 resolve({
                     data: dashboardData,
-                    periodKey: `${year}-${quarter}`,
+                    periodKey: periodKey,
                     detectedDistrict: detectedDistrict
                 });
             }, 500);

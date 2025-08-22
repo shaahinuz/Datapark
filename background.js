@@ -11,15 +11,6 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log('📨 Message received in background:', request);
     
-    if (request.type === 'test') {
-        console.log('🧪 Test message from popup:', request.message);
-        sendResponse({ 
-            success: true, 
-            message: 'Background script is working!',
-            timestamp: new Date().toISOString()
-        });
-        return true; // Keep channel open for async response
-    }
     
     // Handle storage operations for content script
     if (request.type === 'save-data') {

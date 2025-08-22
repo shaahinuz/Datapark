@@ -20,9 +20,7 @@ class DataScraper {
                             directions: []
                         };
 
-                        // Scrape main KPIs with debugging
-                        console.log('DEBUG: Начинаем поиск KPI...');
-                        
+                        // Scrape main KPIs
                         const selectors = [
                             '.staticBlockTitle',
                             '.stat-title', 
@@ -36,9 +34,7 @@ class DataScraper {
                         selectors.forEach(selector => {
                             const elements = document.querySelectorAll(selector);
                             if (elements.length > 0) {
-                                console.log(`DEBUG: Найдено ${elements.length} элементов с селектором ${selector}`);
                                 elements.forEach((el, i) => {
-                                    console.log(`  ${i}: "${el.innerText?.trim()}" (${el.className})`);
                                     foundTitles.push({selector, text: el.innerText?.trim(), element: el});
                                 });
                             }
@@ -62,55 +58,43 @@ class DataScraper {
                             }
                         });
                         
-                        console.log('DEBUG: Найденные числа:', numbersFound.slice(0, 20));
                         
                         // Старый способ
                         const allTitles = document.querySelectorAll('.staticBlockTitle');
-                        console.log(`DEBUG: Найдено .staticBlockTitle: ${allTitles.length}`);
                         
                         allTitles.forEach((titleElement, index) => {
                             const titleText = titleElement.innerText.trim();
-                            console.log(`DEBUG: Title ${index}: "${titleText}"`);
                             
                             const card = titleElement.closest('.staticBlockWrap');
                             if (card) {
                                 const valueElement = card.querySelector('.staticBlockCount');
                                 if (valueElement) {
                                     const mainNumberText = valueElement.firstChild?.textContent.trim();
-                                    console.log(`DEBUG: Value for "${titleText}": "${mainNumberText}"`);
                                     
                                     if (mainNumberText) {
                                         const cleanValue = mainNumberText.replace(/\s/g, '').replace(/,/g, '.');
-                                        console.log(`DEBUG: Clean value: "${cleanValue}"`);
                                         
                                         if (titleText.startsWith('Всего резидентов')) {
                                             dashboardData.totalResidents = parseInt(cleanValue, 10);
-                                            console.log('DEBUG: Set totalResidents:', dashboardData.totalResidents);
                                         }
                                         else if (titleText.startsWith('Количество сотрудников')) {
                                             dashboardData.employeeCount = parseInt(cleanValue, 10);
-                                            console.log('DEBUG: Set employeeCount:', dashboardData.employeeCount);
                                         }
                                         else if (titleText.startsWith('Совокупный доход')) {
                                             dashboardData.totalIncome = parseFloat(cleanValue);
-                                            console.log('DEBUG: Set totalIncome:', dashboardData.totalIncome);
                                         }
                                         else if (titleText.startsWith('Объем экспорта')) {
                                             dashboardData.exportVolume = parseFloat(cleanValue);
-                                            console.log('DEBUG: Set exportVolume:', dashboardData.exportVolume);
                                         }
                                     }
                                 } else {
-                                    console.log(`DEBUG: No .staticBlockCount found for "${titleText}"`);
                                 }
                             } else {
-                                console.log(`DEBUG: No .staticBlockWrap found for "${titleText}"`);
                             }
                         });
                         
                         // Альтернативный поиск если ничего не найдено
                         if (!dashboardData.totalResidents && !dashboardData.employeeCount && !dashboardData.totalIncome && !dashboardData.exportVolume) {
-                            console.log('DEBUG: Пробуем альтернативный поиск...');
                             
                             const keywordSearch = [
                                 {keywords: ['резидент', 'resident'], key: 'totalResidents', type: 'int'},
@@ -131,14 +115,12 @@ class DataScraper {
                                             parseInt(found.number.replace(/[\s,]/g, ''), 10) :
                                             parseFloat(found.number.replace(/[\s,]/g, ''));
                                         dashboardData[search.key] = value;
-                                        console.log(`DEBUG: Alternative search set ${search.key}:`, value);
                                     }
                                 }
                             });
                         }
                         
-                        // Scrape company table with debugging
-                        console.log('DEBUG: Поиск таблицы компаний...');
+                        // Scrape company table
                         
                         const tableSelectors = ['.table-x tbody tr', 'table tbody tr', '.companies-table tbody tr', '.data-table tbody tr'];
                         let tableRows = [];
@@ -146,21 +128,17 @@ class DataScraper {
                         tableSelectors.forEach(selector => {
                             const rows = document.querySelectorAll(selector);
                             if (rows.length > 0) {
-                                console.log(`DEBUG: Найдено ${rows.length} строк с селектором ${selector}`);
                                 tableRows = rows;
                                 return;
                             }
                         });
                         
-                        console.log(`DEBUG: Всего строк в таблице: ${tableRows.length}`);
                         
                         tableRows.forEach((row, rowIndex) => {
                             const cells = row.querySelectorAll('td, th');
-                            console.log(`DEBUG: Строка ${rowIndex}: ${cells.length} ячеек`);
                             
                             if (rowIndex < 3) {
                                 const cellTexts = Array.from(cells).map(cell => cell.innerText?.trim() || '').slice(0, 10);
-                                console.log(`DEBUG: Содержимое строки ${rowIndex}:`, cellTexts);
                             }
                             
                             if (cells.length >= 9) {
@@ -170,7 +148,6 @@ class DataScraper {
                                 
                                 if (companyName && !isNaN(totalEmployees)) {
                                     dashboardData.companies.push({ name: companyName, employees: totalEmployees, direction: direction });
-                                    console.log(`DEBUG: Добавлена компания: ${companyName} (${totalEmployees} сотр.)`);
                                 }
                             } else if (cells.length >= 3) {
                                 for (let i = 0; i < cells.length - 2; i++) {
@@ -180,14 +157,12 @@ class DataScraper {
                                     
                                     if (name && name.length > 3 && !isNaN(employees) && employees > 0) {
                                         dashboardData.companies.push({ name: name, employees: employees, direction: dir || '' });
-                                        console.log(`DEBUG: Альтернативно добавлена компания: ${name} (${employees} сотр.)`);
                                         break;
                                     }
                                 }
                             }
                         });
                         
-                        console.log(`DEBUG: Всего найдено компаний: ${dashboardData.companies.length}`);
                         
                         // Scrape directions summary
                         document.querySelectorAll('.staticBlock').forEach(block => {
@@ -224,14 +199,10 @@ class DataScraper {
                         let detectedDistrict = null;
                         const detectionLog = [];
                         
-                        console.log('🔍 DISTRICT DETECTION DEBUG:');
-                        console.log('URL:', window.location.href);
-                        console.log('Page title:', document.title);
                         
                         // Method 1: Check URL for district parameter  
                         const urlParams = new URLSearchParams(window.location.search);
                         const districtParam = urlParams.get('district') || urlParams.get('rayon') || urlParams.get('tuman') || urlParams.get('region');
-                        console.log('URL params:', Object.fromEntries(urlParams));
                         if (districtParam && districtParam !== 'all' && districtParam !== 'null') {
                             detectedDistrict = districtParam;
                             detectionLog.push(`URL param: ${districtParam}`);
@@ -398,9 +369,24 @@ class DataScraper {
                             console.log('⚠️ No district detected. Consider manual input.');
                         }
                         
+                        // Create period key with region name if detected
+                        let periodKey = `${year}-${quarter}`;
+                        if (detectedDistrict) {
+                            // Check if this is a region (область)
+                            const isRegion = detectedDistrict.includes('область') || 
+                                           detectedDistrict.includes('обл.') ||
+                                           detectedDistrict === 'Андижанская область';
+                            
+                            if (isRegion) {
+                                // Use only first 3 characters of region name
+                                let regionShort = detectedDistrict.substring(0, 3);
+                                periodKey = `${regionShort}-${year}-${quarter}`;
+                            }
+                        }
+                        
                         resolve({
                             data: dashboardData,
-                            periodKey: `${year}-${quarter}`,
+                            periodKey: periodKey,
                             detectedDistrict: detectedDistrict
                         });
                     }, 1000);

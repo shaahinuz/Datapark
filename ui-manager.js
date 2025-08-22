@@ -23,8 +23,13 @@ class UIManager {
         
         const select1 = document.getElementById('period1-select');
         const select2 = document.getElementById('period2-select');
+        const periodFilterSelect = document.getElementById('period-filter-select');
+        
         select1.innerHTML = '';
         select2.innerHTML = '';
+        if (periodFilterSelect) {
+            periodFilterSelect.innerHTML = '<option value="">Выберите период...</option>';
+        }
 
         if (periodKeys.length === 0) {
             select1.innerHTML = '<option value="">Нет сохраненных данных</option>';
@@ -32,11 +37,28 @@ class UIManager {
             return;
         }
 
+        // Get unique base periods for the filter dropdown
+        const basePeriods = new Set();
+        periodKeys.forEach(key => {
+            const periodText = key.replace('period_', '');
+            // Extract base period (e.g., "2025-2Q" from "Анд-2025-2Q")
+            const basePeriod = periodText.includes('-') ? 
+                periodText.split('-').slice(-2).join('-') : periodText;
+            basePeriods.add(basePeriod);
+        });
+
         periodKeys.sort().reverse().forEach(key => {
             const optionText = key.replace('period_', '');
             select1.add(new Option(optionText, key));
             select2.add(new Option(optionText, key));
         });
+
+        // Populate period filter dropdown with unique base periods
+        if (periodFilterSelect) {
+            Array.from(basePeriods).sort().reverse().forEach(basePeriod => {
+                periodFilterSelect.add(new Option(basePeriod, basePeriod));
+            });
+        }
 
         if (periodKeys.length > 1) {
             select1.selectedIndex = 0;
@@ -200,7 +222,7 @@ class UIManager {
         companyHtml += '<div class="table-container"><table class="company-table"><thead><tr><th>№</th><th>Компания</th><th>Направление</th><th>Статус</th><th>Сотрудники</th></tr></thead><tbody>';
         
         let counter = 1;
-        companyChanges.added.forEach(c => {
+        companyChanges.added.sort((a, b) => a.name.localeCompare(b.name)).forEach(c => {
             const employeeDisplay = c.employees > 0 ? `+${c.employees}` : '0';
             const employeeClass = c.employees > 0 ? 'positive' : '';
             companyHtml += `<tr><td>${counter++}</td><td>${c.name}</td><td>${c.direction || ''}</td><td><span class="positive">Новая</span></td><td class="change-col"><span class="${employeeClass}">${employeeDisplay}</span></td></tr>`;
@@ -220,7 +242,7 @@ class UIManager {
             }
         });
 
-        companyChanges.removed.forEach(c => {
+        companyChanges.removed.sort((a, b) => a.name.localeCompare(b.name)).forEach(c => {
             companyHtml += `<tr><td>${counter++}</td><td>${c.name}</td><td>${c.direction || ''}</td><td><span class="negative">Лишён статуса</span></td><td class="change-col"><span class="negative">-${c.employees}</span></td></tr>`;
         });
 
@@ -295,18 +317,18 @@ class UIManager {
         companyHtml += '<div class="table-container"><table class="company-table"><thead><tr><th>#</th><th>Компания</th><th>Направление</th><th>Статус</th><th>Сотрудники</th></tr></thead><tbody>';
         
         let counter = 1;
-        companyChanges.added.forEach(c => {
+        companyChanges.added.sort((a, b) => a.name.localeCompare(b.name)).forEach(c => {
             companyHtml += `<tr><td>${counter++}</td><td>${c.name}</td><td>${c.direction || ''}</td><td><span class="positive">Новая</span></td><td class="change-col"><span class="positive">+${c.employees}</span></td></tr>`;
         });
 
-        companyChanges.changed.forEach(c => {
+        companyChanges.changed.sort((a, b) => b.change - a.change).forEach(c => {
             const empChange = c.change || 0;
             if (empChange !== 0) {
                 companyHtml += `<tr><td>${counter++}</td><td>${c.name}</td><td>${c.direction || ''}</td><td>Изменение</td><td class="change-col"><span class="${empChange > 0 ? 'positive' : 'negative'}">${empChange > 0 ? '+' : ''}${empChange}</span></td></tr>`;
             }
         });
 
-        companyChanges.removed.forEach(c => {
+        companyChanges.removed.sort((a, b) => a.name.localeCompare(b.name)).forEach(c => {
             companyHtml += `<tr><td>${counter++}</td><td>${c.name}</td><td>${c.direction || ''}</td><td><span class="negative">Лишён статуса</span></td><td class="change-col"><span class="negative">-${c.employees}</span></td></tr>`;
         });
 
@@ -360,8 +382,121 @@ class UIManager {
         section.style.display = 'block';
     }
 
+    displayCompanyHistory(data) {
+        const section = document.getElementById('company-history-section');
+        const statsDiv = document.getElementById('company-stats');
+        const timelineDiv = document.getElementById('company-timeline');
+
+        console.log('History data received:', data);
+        console.log('periodsData keys:', Object.keys(data.periodsData));
+        
+        const allCompanies = this.comparisonEngine.getAllCompanies(data.periodsData);
+        console.log('All companies found:', allCompanies);
+        
+        if (allCompanies.length === 0) {
+            statsDiv.innerHTML = '<h4>❌ Компании не найдены</h4><p>В сохраненных периодах нет данных о компаниях.</p>';
+            timelineDiv.innerHTML = '';
+            section.style.display = 'block';
+            return;
+        }
+        
+        let statsHtml = '<h4>🔍 Анализ конкретной компании</h4>';
+        statsHtml += `<p style="color: #666; font-size: 12px;">Найдено ${allCompanies.length} уникальных компаний в ${Object.keys(data.periodsData).length} периодах</p>`;
+        statsHtml += '<div style="margin-bottom: 15px;">';
+        statsHtml += '<select id="company-select" style="width: 100%; padding: 8px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 13px;">';
+        statsHtml += '<option value="">Выберите компанию...</option>';
+        allCompanies.forEach((companyName, index) => {
+            // Escape quotes in company names to prevent HTML attribute issues
+            const escapedName = companyName.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+            console.log(`Adding option ${index + 1}: "${companyName}" (escaped: "${escapedName}")`);
+            statsHtml += `<option value="${escapedName}">${companyName}</option>`;
+        });
+        statsHtml += '</select>';
+        statsHtml += '</div>';
+        
+        // Individual company display area
+        statsHtml += '<div id="individual-company-display"></div>';
+
+        statsDiv.innerHTML = statsHtml;
+
+        // Add event listener to company select dropdown
+        const companySelect = document.getElementById('company-select');
+        console.log('companySelect element found:', !!companySelect);
+        if (companySelect) {
+            // Remove any existing event listeners
+            companySelect.removeEventListener('change', this.companyChangeHandler);
+            
+            // Create a bound handler to maintain 'this' context
+            this.companyChangeHandler = (e) => {
+                console.log('Raw event target value:', e.target.value);
+                console.log('Event target selectedIndex:', e.target.selectedIndex);
+                if (e.target.selectedIndex > 0) {
+                    const selectedOption = e.target.options[e.target.selectedIndex];
+                    let selectedValue = selectedOption.value;
+                    const selectedText = selectedOption.text;
+                    
+                    console.log('Selected option value:', selectedValue);
+                    console.log('Selected option text:', selectedText);
+                    
+                    // If value is empty or escaped, use the text content
+                    if (!selectedValue || selectedValue.includes('&quot;') || selectedValue.includes('&#39;')) {
+                        selectedValue = selectedText;
+                        console.log('Using text instead of value:', selectedValue);
+                    }
+                    
+                    this.handleCompanySelection(selectedValue);
+                } else {
+                    console.log('No company selected (index 0)');
+                    this.handleCompanySelection('');
+                }
+            };
+            
+            companySelect.addEventListener('change', this.companyChangeHandler);
+            console.log('Event listener added to company select');
+        } else {
+            console.error('company-select element not found!');
+        }
+
+        // Hide timeline section completely
+        timelineDiv.innerHTML = '';
+        timelineDiv.style.display = 'none';
+
+        // Store periods data for later use
+        this.currentPeriodsData = data.periodsData;
+        console.log('Stored periodsData for later use');
+
+        this.closeOtherComparisonSections('company-history-section');
+        section.style.display = 'block';
+        section.classList.add('showing');
+        section.scrollIntoView({ behavior: 'smooth' });
+        
+        setTimeout(() => {
+            section.classList.remove('showing');
+        }, 400);
+    }
+
+    handleCompanySelection(companyName) {
+        console.log('handleCompanySelection called with:', companyName);
+        console.log('this.currentPeriodsData exists:', !!this.currentPeriodsData);
+        console.log('this.currentPeriodsData keys:', this.currentPeriodsData ? Object.keys(this.currentPeriodsData) : 'none');
+        
+        const displayDiv = document.getElementById('individual-company-display');
+        
+        console.log('displayDiv found:', !!displayDiv);
+        
+        if (companyName && this.currentPeriodsData) {
+            console.log('Calling displayIndividualCompanyData...');
+            this.displayIndividualCompanyData(this.currentPeriodsData, companyName);
+        } else {
+            console.log('Clearing displays - companyName:', companyName, 'currentPeriodsData:', !!this.currentPeriodsData);
+            if (displayDiv) {
+                displayDiv.innerHTML = '';
+            }
+        }
+    }
+
     closeOtherComparisonSections(keepOpen) {
-        const sections = ['comparison-section', 'district-comparison-section'];
+        const sections = ['comparison-section', 'district-comparison-section', 'company-history-section'];
         
         sections.forEach(sectionId => {
             if (sectionId !== keepOpen) {
@@ -381,10 +516,210 @@ class UIManager {
         document.getElementById('comparison-section').style.display = 'none';
         document.getElementById('district-comparison-section').style.display = 'none';
         document.getElementById('current-data-section').style.display = 'none';
+        document.getElementById('company-history-section').style.display = 'none';
         
         const districtFilter = document.getElementById('district-filter-select');
         if (districtFilter) {
             districtFilter.selectedIndex = 0;
+        }
+    }
+
+    displayIndividualCompanyData(periodsData, companyName) {
+        const displayDiv = document.getElementById('individual-company-display');
+        
+        console.log('displayIndividualCompanyData called with:', companyName);
+        console.log('periodsData:', periodsData);
+        console.log('displayDiv found:', !!displayDiv);
+        
+        if (!displayDiv) {
+            console.error('Display div not found');
+            return;
+        }
+
+        if (!companyName) {
+            console.log('No company name provided, clearing display');
+            displayDiv.innerHTML = '';
+            return;
+        }
+
+        const companyData = this.comparisonEngine.getCompanyData(periodsData, companyName);
+        console.log('Company data retrieved:', companyData);
+        
+        let html = `<h5 style="margin-top: 15px;">📊 ${companyName}</h5>`;
+        html += '<table class="company-table" style="width: 100%; margin-top: 10px;"><thead>';
+        html += '<tr><th>Период</th><th>Количество сотрудников</th><th>Изменение</th></tr>';
+        html += '</thead><tbody>';
+        
+        let rowsAdded = 0;
+        let previousEmployees = null;
+        
+        companyData.periods.forEach((period, index) => {
+            console.log(`Period ${index}:`, period);
+            if (period.present) {
+                const currentEmployees = period.employees || 0;
+                let changeText = '-';
+                let changeClass = '';
+                
+                if (previousEmployees !== null) {
+                    const change = currentEmployees - previousEmployees;
+                    if (change > 0) {
+                        changeText = `+${change}`;
+                        changeClass = 'positive';
+                    } else if (change < 0) {
+                        changeText = `${change}`;
+                        changeClass = 'negative';
+                    } else {
+                        changeText = '0';
+                        changeClass = '';
+                    }
+                } else {
+                    changeText = 'Первое появление';
+                    changeClass = 'positive';
+                }
+                
+                html += `<tr>
+                    <td><strong>${period.period}</strong></td>
+                    <td>${currentEmployees}</td>
+                    <td class="change-col"><span class="${changeClass}">${changeText}</span></td>
+                </tr>`;
+                
+                previousEmployees = currentEmployees;
+                rowsAdded++;
+            }
+        });
+        
+        
+        if (rowsAdded === 0) {
+            html += '<tr><td colspan="3" style="text-align: center; color: #666;">Нет данных для отображения</td></tr>';
+        }
+        
+        html += '</tbody></table>';
+        
+        console.log('Setting HTML:', html);
+        displayDiv.innerHTML = html;
+    }
+
+
+    displayRegionalData(regionalData, basePeriod) {
+        const displayDiv = document.getElementById('regional-data-display');
+        
+        if (regionalData.length === 0) {
+            displayDiv.innerHTML = `
+                <div style="text-align: center; color: #666; padding: 20px;">
+                    <h4>Нет данных для периода ${basePeriod}</h4>
+                    <p>Региональные данные не найдены</p>
+                </div>
+            `;
+            displayDiv.style.display = 'block';
+            return;
+        }
+
+        let html = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h4 style="margin: 0; color: #4a5568;">
+                    📊 Регионы за период ${basePeriod} (найдено: ${regionalData.length})
+                </h4>
+                <button id="export-regional-csv-btn" class="btn btn-secondary" style="padding: 6px 12px; font-size: 11px; margin: 0;">
+                    📊 CSV
+                </button>
+            </div>
+            <div class="table-container">
+                <table class="company-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">Регион</th>
+                            <th style="width: 20%;">Сотрудники</th>
+                            <th style="width: 18%;">Компании</th>
+                            <th style="width: 18%;">Доходы (млн)</th>
+                            <th style="width: 19%;">Экспорт (млн)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        // Sort regional data by employees count (descending)
+        regionalData.sort((a, b) => b.employees - a.employees);
+
+        regionalData.forEach(region => {
+            const totalIncome = region.data.totalIncome || 0;
+            const exportVolume = region.data.exportVolume || 0;
+            
+            html += `
+                <tr>
+                    <td style="font-weight: 600;">${region.regionName}</td>
+                    <td style="text-align: center;">${region.employees.toLocaleString()}</td>
+                    <td style="text-align: center;">${region.companies}</td>
+                    <td style="text-align: center;">${totalIncome.toLocaleString()}</td>
+                    <td style="text-align: center;">${exportVolume.toLocaleString()}</td>
+                </tr>
+            `;
+        });
+
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        displayDiv.innerHTML = html;
+        displayDiv.style.display = 'block';
+        
+        // Store regional data for CSV export
+        window.currentRegionalData = {
+            data: regionalData,
+            period: basePeriod
+        };
+        
+        // Add event listener to export button
+        const exportBtn = document.getElementById('export-regional-csv-btn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => this.exportRegionalDataToCSV(regionalData, basePeriod));
+        }
+    }
+
+    exportRegionalDataToCSV(regionalData, basePeriod) {
+        try {
+            // Create CSV header with BOM for proper UTF-8 encoding
+            const headers = ['Регион', 'Сотрудники', 'Компании', 'Доходы (млн)', 'Экспорт (млн)'];
+            let csvContent = '\uFEFF' + headers.join(',') + '\n'; // Add BOM for UTF-8
+            
+            // Add data rows
+            regionalData.forEach(region => {
+                const totalIncome = region.data.totalIncome || 0;
+                const exportVolume = region.data.exportVolume || 0;
+                
+                const row = [
+                    `"${region.regionName}"`,
+                    region.employees,
+                    region.companies,
+                    totalIncome,
+                    exportVolume
+                ];
+                csvContent += row.join(',') + '\n';
+            });
+            
+            // Create and download file with proper UTF-8 encoding
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            
+            // Generate filename with timestamp (using English characters for compatibility)
+            const now = new Date();
+            const timestamp = now.toISOString().slice(0, 19).replace(/:/g, '-');
+            const filename = `Regional_data_${basePeriod}_${timestamp}.csv`;
+            link.setAttribute('download', filename);
+            
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            this.showStatus(`CSV файл "${filename}" загружен!`, 'success');
+            
+        } catch (error) {
+            console.error('Error generating regional CSV:', error);
+            this.showStatus(`Ошибка создания CSV: ${error.message}`, 'error');
         }
     }
 }

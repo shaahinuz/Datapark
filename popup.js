@@ -20,6 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
         exportManager = new ExportManager();
         uiManager = new UIManager();
         notificationOverlay = new NotificationOverlay();
+        
+        // Make uiManager available globally for HTML event handlers
+        window.uiManager = uiManager;
 
         setupEventListeners();
         uiManager.loadSavedPeriodsIntoDropdowns();
@@ -44,6 +47,7 @@ function setupEventListeners() {
         { id: 'compare-districts-btn', handler: handleCompareDistricts },
         { id: 'generate-district-csv-btn', handler: handleGenerateDistrictCSV },
         { id: 'detect-district-btn', handler: handleDetectDistrict },
+        { id: 'analyze-company-history-btn', handler: handleAnalyzeCompanyHistory },
     ];
     
     buttons.forEach(({ id, handler }) => {
@@ -72,6 +76,16 @@ function setupEventListeners() {
             uiManager.loadFilteredDistrictsIntoDropdowns(selectedDistrict);
         });
         console.log('✓ District filter event listener added');
+    }
+    
+    // Add event listener for period filter dropdown (regional viewer)
+    const periodFilter = document.getElementById('period-filter-select');
+    if (periodFilter) {
+        periodFilter.addEventListener('change', (e) => {
+            const selectedPeriod = e.target.value;
+            handlePeriodFilterChange(selectedPeriod);
+        });
+        console.log('✓ Period filter event listener added');
     }
     
     // Add event listeners for save mode radio buttons
@@ -107,8 +121,6 @@ async function handleShowCurrentData() {
         console.log('- Сотрудники:', data.employeeCount);
         console.log('- Доход:', data.totalIncome);
         console.log('- Экспорт:', data.exportVolume);
-        console.log('- Компании:', data.companies?.length);
-        console.log('- Направления:', data.directions?.length);
         
         uiManager.displayCurrentData(pageData);
         
@@ -390,4 +402,109 @@ async function handleDetectDistrict() {
         uiManager.showStatus(`Ошибка определения района: ${error.message}`, 'error');
     }
 }
+
+let companyHistoryResult = {};
+
+async function handleAnalyzeCompanyHistory() {
+    uiManager.showStatus('Анализирую историю компаний...', 'info');
+    
+    try {
+        const allData = await storageManager.getAllData();
+        console.log('All stored data:', allData);
+        
+        const periodKeys = Object.keys(allData).filter(key => key.startsWith('period_'));
+        console.log('Found period keys:', periodKeys);
+        
+        if (periodKeys.length === 0) {
+            uiManager.showStatus('Нет сохраненных периодов. Сначала сохраните данные с дашборда.', 'error');
+            return;
+        }
+        
+        if (periodKeys.length < 2) {
+            uiManager.showStatus('Недостаточно данных для полного анализа. Рекомендуется минимум 2 периода, но покажем доступные данные.', 'warning');
+        }
+        
+        const periodsData = {};
+        let totalCompanies = 0;
+        
+        periodKeys.forEach(key => {
+            periodsData[key] = allData[key];
+            const companies = allData[key]?.companies || [];
+            totalCompanies += companies.length;
+        });
+        
+        console.log(`Total companies across all periods: ${totalCompanies}`);
+        
+        if (totalCompanies === 0) {
+            uiManager.showStatus('В сохраненных периодах нет данных о компаниях. Убедитесь, что данные сохранены корректно.', 'error');
+            return;
+        }
+        
+        const historyData = comparisonEngine.analyzeCompanyHistory(periodsData);
+        const stats = comparisonEngine.getCompanyStatistics(periodsData);
+        
+        console.log('History data generated:', historyData);
+        console.log('Stats generated:', stats);
+        
+        companyHistoryResult = {
+            historyData,
+            stats,
+            periodsData
+        };
+        
+        uiManager.displayCompanyHistory({ periodsData, historyData, stats });
+        uiManager.showStatus(`История по ${periodKeys.length} периодам проанализирована! Найдено ${totalCompanies} записей компаний.`, 'success');
+        
+    } catch (error) {
+        console.error('Error analyzing company history:', error);
+        uiManager.showStatus(`Ошибка анализа истории: ${error.message}`, 'error');
+    }
+}
+
+async function handlePeriodFilterChange(selectedPeriod) {
+    if (!selectedPeriod) {
+        document.getElementById('regional-data-display').style.display = 'none';
+        return;
+    }
+    
+    try {
+        const allData = await storageManager.getAllData();
+        
+        // Extract the base period (e.g., "2025-2Q" from "Анд-2025-2Q")
+        const basePeriod = selectedPeriod.includes('-') ? 
+            selectedPeriod.split('-').slice(-2).join('-') : selectedPeriod;
+        
+        // Find all regions that have data for this period
+        const regionalData = [];
+        Object.keys(allData).forEach(key => {
+            if (key.startsWith('period_') && key.includes(basePeriod)) {
+                const data = allData[key];
+                const regionName = key.replace('period_', '');
+                
+                // Extract region from period key if it contains region info
+                let displayName = regionName;
+                if (regionName.includes('-') && regionName !== basePeriod) {
+                    const parts = regionName.split('-');
+                    if (parts.length >= 3) {
+                        displayName = `${parts[0]} (${parts.slice(1).join('-')})`;
+                    }
+                }
+                
+                regionalData.push({
+                    regionName: displayName,
+                    data: data,
+                    employees: data.employeeCount || 0,
+                    companies: data.companies ? data.companies.length : 0
+                });
+            }
+        });
+        
+        uiManager.displayRegionalData(regionalData, basePeriod);
+        
+    } catch (error) {
+        console.error('Error loading regional data:', error);
+        uiManager.showStatus(`Ошибка загрузки региональных данных: ${error.message}`, 'error');
+    }
+}
+
 

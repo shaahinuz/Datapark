@@ -85,14 +85,27 @@
             </div>
         </details>
 
-
-
-
-
         <!-- Comparison Section -->
         <div class="section">
             <h3>2. Сравнение периодов</h3>
             <p class="description">Выберите два сохраненных периода для сравнения.</p>
+            
+            <!-- Regional Data Viewer Sub-section -->
+            <details class="regional-viewer-section" style="margin-bottom: 16px;">
+                <summary style="font-size: 13px; font-weight: 500; color: #4a5568; cursor: pointer; margin-bottom: 8px;">
+                    🗺️ Просмотр регионов по периоду
+                </summary>
+                <div class="form-group" style="margin-top: 8px;">
+                    <label>Выберите период для просмотра всех регионов:</label>
+                    <select id="period-filter-select">
+                        <option value="">Выберите период...</option>
+                    </select>
+                </div>
+                <div id="regional-data-display" style="display: none; margin-top: 12px;">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </details>
+            
             <div class="period-select">
                 <div class="form-group">
                     <label>Период 1 (Новый):</label>
@@ -110,9 +123,47 @@
             <button id="compare-btn" class="btn btn-primary">Сравнить</button>
         </div>
 
+        <!-- Results Section -->
+        <div class="section" id="comparison-section" style="display: none;">
+            <h3>Результаты сравнения</h3>
+            <div class="comparison-grid" id="comparison-data">
+                <!-- Populated by JavaScript -->
+            </div>
+            <!-- Company Details Table -->
+            <div id="company-comparison-section" style="margin-top: 20px;">
+                 <!-- Populated by JavaScript -->
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px;">
+                <button id="generate-csv-btn" class="btn btn-secondary">
+                    📊 Сгенерировать CSV
+                </button>
+                <button id="generate-docx-btn" class="btn btn-primary">
+                    📄 Сгенерировать DOCX
+                </button>
+            </div>
+        </div>
+
+        <!-- Company History Section -->
+        <div class="section">
+            <h3>3. История изменений компаний</h3>
+            <p class="description">Анализ изменений компаний по всем сохраненным периодам.</p>
+            <button id="analyze-company-history-btn" class="btn btn-primary">📈 Проанализировать историю</button>
+        </div>
+
+        <!-- Company History Results Section -->
+        <div class="section" id="company-history-section" style="display: none;">
+            <h3>История изменений компаний</h3>
+            <div id="company-stats" style="margin-bottom: 20px;">
+                <!-- Statistics populated by JavaScript -->
+            </div>
+            <div id="company-timeline" style="margin-bottom: 20px;">
+                <!-- Timeline populated by JavaScript -->
+            </div>
+        </div>
+
         <!-- District Comparison Section -->
         <div class="section">
-            <h3>3. Сравнение районов</h3>
+            <h3>4. Сравнение районов</h3>
             <p class="description">Выберите два сохраненных района для сравнения.</p>
             
             <div class="form-group">
@@ -139,26 +190,6 @@
             <button id="compare-districts-btn" class="btn btn-primary">Сравнить районы</button>
         </div>
 
-        <!-- Results Section -->
-        <div class="section" id="comparison-section" style="display: none;">
-            <h3>Результаты сравнения</h3>
-            <div class="comparison-grid" id="comparison-data">
-                <!-- Populated by JavaScript -->
-            </div>
-            <!-- Company Details Table -->
-            <div id="company-comparison-section" style="margin-top: 20px;">
-                 <!-- Populated by JavaScript -->
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px;">
-                <button id="generate-csv-btn" class="btn btn-secondary">
-                    📊 Сгенерировать CSV
-                </button>
-                <button id="generate-docx-btn" class="btn btn-primary">
-                    📄 Сгенерировать DOCX
-                </button>
-            </div>
-        </div>
-
         <!-- District Results Section -->
         <div class="section" id="district-comparison-section" style="display: none;">
             <h3>Результаты сравнения районов</h3>
@@ -175,6 +206,7 @@
                 </button>
             </div>
         </div>
+
 
         <!-- Status Messages -->
         <div id="status" class="status"></div>
