@@ -7,8 +7,15 @@
 <body>
     <div class="container">
         <div class="header">
-            <h2>Datapark</h2>
-            <p style="font-size: 11px; color: white; margin: 0; font-weight: normal;">by @shaahinuz</p>
+            <div class="header-content">
+                <div class="header-text">
+                    <h2>Datapark</h2>
+                    <p style="font-size: 11px; color: white; margin: 0; font-weight: normal;">by @shaahinuz</p>
+                </div>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark theme" title="Toggle dark/light theme">
+                    <span class="theme-icon">🌙</span>
+                </button>
+            </div>
         </div>
 
         <!-- NEW: Current Data Section -->
@@ -83,18 +90,32 @@
                     </div>
                 </div>
                 
-                <button id="save-data-btn" class="btn btn-primary" aria-label="Сохранить данные с текущей страницы">
-                    <span class="icon icon-save"></span>
-                    Сохранить данные с экрана
-                </button>
-                <button id="clear-cache-btn" class="btn btn-danger" style="margin-top: 8px;" aria-label="Очистить все сохраненные данные">
-                    <span class="icon icon-delete"></span>
-                    Очистить весь кэш
-                </button>
-                <button id="diagnose-btn" class="btn btn-info" style="margin-top: 4px;" aria-label="Диагностировать содержимое страницы">
-                    <span class="icon icon-search"></span>
-                    Диагностика страницы
-                </button>
+                <div class="button-group">
+                    <button id="save-data-btn" class="btn btn-primary" aria-label="Сохранить данные с текущей страницы">
+                        <span class="icon icon-save"></span>
+                        Сохранить данные с экрана
+                    </button>
+                    <button id="clear-cache-btn" class="btn btn-danger" aria-label="Очистить все сохраненные данные">
+                        <span class="icon icon-delete"></span>
+                        Очистить весь кэш
+                    </button>
+                    <button id="diagnose-btn" class="btn btn-info" aria-label="Диагностировать содержимое страницы">
+                        <span class="icon icon-search"></span>
+                        Диагностика страницы
+                    </button>
+                </div>
+                
+                <div class="button-group" style="margin-top: 10px;">
+                    <button id="export-all-data-btn" class="btn btn-secondary" aria-label="Экспортировать все данные в файл для резервного копирования">
+                        <span class="icon icon-download"></span>
+                        Экспорт всех данных
+                    </button>
+                    <button id="import-all-data-btn" class="btn btn-secondary" aria-label="Импортировать данные из файла резервной копии">
+                        <span class="icon icon-upload"></span>
+                        Импорт всех данных
+                    </button>
+                </div>
+                <input type="file" id="import-file-input" accept=".json" style="display: none;" aria-label="Выберите файл с данными для импорта">
             </div>
         </details>
 
@@ -103,21 +124,6 @@
             <h3>2. Сравнение периодов</h3>
             <p class="description">Выберите два сохраненных периода для сравнения.</p>
             
-            <!-- Regional Data Viewer Sub-section -->
-            <details class="regional-viewer-section" style="margin-bottom: 16px;">
-                <summary style="font-size: 13px; font-weight: 500; color: #4a5568; cursor: pointer; margin-bottom: 8px;">
-                    🗺️ Просмотр регионов по периоду
-                </summary>
-                <div class="form-group" style="margin-top: 8px;">
-                    <label for="period-filter-select">Выберите период для просмотра всех регионов:</label>
-                    <select id="period-filter-select" aria-label="Выберите период для просмотра региональных данных">
-                        <option value="">Выберите период...</option>
-                    </select>
-                </div>
-                <div id="regional-data-display" class="hidden" style="margin-top: 12px;">
-                    <!-- Populated by JavaScript -->
-                </div>
-            </details>
             
             <div class="period-select">
                 <div class="form-group">
@@ -133,10 +139,76 @@
                     </select>
                 </div>
             </div>
-            <button id="compare-btn" class="btn btn-primary" aria-label="Сравнить выбранные периоды">
-                <span class="icon icon-compare"></span>
-                Сравнить
-            </button>
+            <div class="comparison-buttons">
+                <button id="compare-btn" class="btn btn-primary" aria-label="Сравнить выбранные периоды">
+                    <span class="icon icon-compare"></span>
+                    Сравнить
+                </button>
+                <button id="multi-compare-btn" class="btn btn-secondary" aria-label="Сравнение значений периодов">
+                    <span class="icon icon-table"></span>
+                    Сравнение значений периодов
+                </button>
+                <button id="regional-viewer-btn" class="btn btn-secondary" aria-label="Просмотр регионов по периоду">
+                    <span class="icon icon-search"></span>
+                    Просмотр регионов
+                </button>
+            </div>
+        </div>
+
+        <!-- Multi-Period Comparison Section -->
+        <div class="section hidden" id="multi-period-section">
+            <h3>Сравнение значений периодов</h3>
+            <p class="description">Выберите несколько периодов для сравнения их основных показателей.</p>
+            
+            <div id="multi-period-selectors">
+                <!-- Dynamic period selectors will be added here -->
+            </div>
+            
+            <div class="multi-period-controls">
+                <button id="add-period-btn" class="btn btn-outline">
+                    <span class="icon icon-plus"></span>
+                    Добавить период
+                </button>
+                <button id="multi-period-compare-btn" class="btn btn-primary" disabled>
+                    <span class="icon icon-compare"></span>
+                    Сравнить периоды
+                </button>
+            </div>
+            
+            <div id="multi-period-results" class="hidden">
+                <!-- Multi-period comparison results will be displayed here -->
+            </div>
+            
+            <div class="button-group hidden" id="multi-period-export-section">
+                <button id="multi-period-export-btn" class="btn btn-secondary">
+                    <span class="icon icon-table"></span>
+                    CSV Отчёт
+                </button>
+            </div>
+        </div>
+
+        <!-- Regional Viewer Section -->
+        <div class="section hidden" id="regional-viewer-section">
+            <h3>🗺️ Просмотр регионов по периоду</h3>
+            <p class="description">Выберите период для просмотра всех региональных данных.</p>
+            
+            <div class="form-group">
+                <label for="period-filter-select">Период:</label>
+                <select id="period-filter-select" aria-label="Выберите период для просмотра региональных данных">
+                    <option value="">Выберите период...</option>
+                </select>
+            </div>
+            
+            <div class="button-group">
+                <button id="show-regional-btn" class="btn btn-primary" disabled>
+                    <span class="icon icon-eye"></span>
+                    Показать регионы
+                </button>
+            </div>
+            
+            <div id="regional-data-display" class="hidden">
+                <!-- Populated by JavaScript -->
+            </div>
         </div>
 
         <!-- Results Section -->
@@ -149,14 +221,18 @@
             <div id="company-comparison-section" style="margin-top: 20px;">
                  <!-- Populated by JavaScript -->
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px;">
+            <div class="button-group horizontal">
                 <button id="generate-csv-btn" class="btn btn-secondary" aria-label="Экспортировать результаты сравнения в CSV файл">
                     <span class="icon icon-table"></span>
                     CSV Отчёт
                 </button>
-                <button id="generate-docx-btn" class="btn btn-primary" aria-label="Экспортировать результаты сравнения в DOCX документ">
+                <button id="generate-docx-btn" class="btn btn-secondary" aria-label="Экспортировать результаты сравнения в DOCX документ">
                     <span class="icon icon-document"></span>
                     DOCX Отчёт
+                </button>
+                <button id="manage-startups-comparison-btn" class="btn btn-primary" aria-label="Управление стартапами для сравниваемых периодов">
+                    <span class="icon icon-star"></span>
+                    Стартапы
                 </button>
             </div>
         </div>
@@ -165,10 +241,16 @@
         <div class="section">
             <h3>3. История изменений компаний</h3>
             <p class="description">Анализ изменений компаний по всем сохраненным периодам.</p>
-            <button id="analyze-company-history-btn" class="btn btn-primary">
-                <span class="icon icon-analytics"></span>
-                Проанализировать историю
-            </button>
+            <div class="button-group">
+                <button id="analyze-company-history-btn" class="btn btn-primary">
+                    <span class="icon icon-analytics"></span>
+                    Проанализировать историю
+                </button>
+                <button id="manage-startups-btn" class="btn btn-secondary">
+                    <span class="icon icon-star"></span>
+                    Стартапы
+                </button>
+            </div>
         </div>
 
         <!-- Company History Results Section -->
@@ -179,6 +261,52 @@
             </div>
             <div id="company-timeline" style="margin-bottom: 20px;">
                 <!-- Timeline populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Startup Management Section -->
+        <div class="section hidden" id="startup-management-section">
+            <h3>⭐ Управление стартапами</h3>
+            <p class="description">Отмечайте компании как стартапы и просматривайте их по периодам.</p>
+            
+            <div class="form-group">
+                <label for="startup-period-select">Выберите период для работы со стартапами:</label>
+                <select id="startup-period-select" aria-label="Выберите период для управления стартапами">
+                    <option value="">Выберите период...</option>
+                </select>
+            </div>
+            
+            <div class="button-group">
+                <button id="add-startups-btn" class="btn btn-primary" disabled aria-label="Выбрать стартапы из компаний выбранного периода">
+                    <span class="icon icon-star"></span>
+                    Выбрать стартапы
+                </button>
+                <button id="show-startups-btn" class="btn btn-secondary" disabled aria-label="Показать все стартапы в выбранном периоде">
+                    <span class="icon icon-eye"></span>
+                    Показать стартапы периода
+                </button>
+            </div>
+            
+            <!-- Startup Selection Modal -->
+            <div id="startup-selection-modal" class="hidden" style="margin-top: 15px;">
+                <h4>Выберите стартапы из списка компаний:</h4>
+                <div id="startup-company-list" style="max-height: 300px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px;">
+                    <!-- Companies will be populated here -->
+                </div>
+                <div class="button-group" style="margin-top: 10px;">
+                    <button id="save-startups-btn" class="btn btn-primary">
+                        <span class="icon icon-save"></span>
+                        Сохранить стартапы
+                    </button>
+                    <button id="cancel-startups-btn" class="btn btn-outline">
+                        Отмена
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Startup Display Area -->
+            <div id="startup-display-section" class="hidden" style="margin-top: 15px;">
+                <!-- Startup companies will be displayed here -->
             </div>
         </div>
 
@@ -214,6 +342,7 @@
             </button>
         </div>
 
+
         <!-- District Results Section -->
         <div class="section" id="district-comparison-section" style="display: none;">
             <h3>Результаты сравнения районов</h3>
@@ -224,10 +353,10 @@
             <div id="district-company-comparison-section" style="margin-top: 20px;">
                  <!-- Populated by JavaScript -->
             </div>
-            <div style="margin-top: 16px;">
+            <div class="button-group">
                 <button id="generate-district-csv-btn" class="btn btn-secondary">
                     <span class="icon icon-table"></span>
-                    CSV Отчёт (районы)
+                    CSV Отчёт
                 </button>
             </div>
         </div>
@@ -235,11 +364,6 @@
 
         <!-- Status Messages -->
         <div id="status" class="status"></div>
-        
-        <!-- Attribution -->
-        <div class="attribution">
-            Datapark by <strong>@shaahinuz</strong>
-        </div>
     </div>
     <!-- Load modular JavaScript files -->
     <script src="data-scraper.js"></script>

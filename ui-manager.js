@@ -24,16 +24,23 @@ class UIManager {
         const select1 = document.getElementById('period1-select');
         const select2 = document.getElementById('period2-select');
         const periodFilterSelect = document.getElementById('period-filter-select');
+        const startupPeriodSelect = document.getElementById('startup-period-select');
         
         select1.innerHTML = '';
         select2.innerHTML = '';
         if (periodFilterSelect) {
             periodFilterSelect.innerHTML = '<option value="">Выберите период...</option>';
         }
+        if (startupPeriodSelect) {
+            startupPeriodSelect.innerHTML = '<option value="">Выберите период...</option>';
+        }
 
         if (periodKeys.length === 0) {
             select1.innerHTML = '<option value="">Нет сохраненных данных</option>';
             select2.innerHTML = '<option value="">Нет сохраненных данных</option>';
+            if (startupPeriodSelect) {
+                startupPeriodSelect.innerHTML = '<option value="">Нет сохраненных данных</option>';
+            }
             return;
         }
 
@@ -51,6 +58,10 @@ class UIManager {
             const optionText = key.replace('period_', '');
             select1.add(new Option(optionText, key));
             select2.add(new Option(optionText, key));
+            
+            if (startupPeriodSelect) {
+                startupPeriodSelect.add(new Option(optionText, key));
+            }
         });
 
         // Populate period filter dropdown with unique base periods
@@ -631,7 +642,7 @@ class UIManager {
                             <th style="width: 25%;">Регион</th>
                             <th style="width: 20%;">Сотрудники</th>
                             <th style="width: 18%;">Компании</th>
-                            <th style="width: 18%;">Доходы (млн)</th>
+                            <th style="width: 18%;">Доходы (млрд)</th>
                             <th style="width: 19%;">Экспорт (млн)</th>
                         </tr>
                     </thead>
@@ -681,7 +692,7 @@ class UIManager {
     exportRegionalDataToCSV(regionalData, basePeriod) {
         try {
             // Create CSV header with BOM for proper UTF-8 encoding
-            const headers = ['Регион', 'Сотрудники', 'Компании', 'Доходы (млн)', 'Экспорт (млн)'];
+            const headers = ['Регион', 'Сотрудники', 'Компании', 'Доходы (млрд)', 'Экспорт (млн)'];
             let csvContent = '\uFEFF' + headers.join(',') + '\n'; // Add BOM for UTF-8
             
             // Add data rows

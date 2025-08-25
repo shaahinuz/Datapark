@@ -2,10 +2,12 @@
 console.log('🚀 Datapark content script loaded on:', window.location.href);
 
 // Check Chrome extension APIs availability
-if (typeof chrome === 'undefined') {
+if (typeof chrome === 'undefined' || !chrome.runtime) {
     console.error('❌ Chrome extension APIs not available');
+    console.error('Extension context missing - try reloading extension');
 } else {
     console.log('✅ Chrome extension APIs available');
+    console.log('Extension ID:', chrome.runtime.id);
 }
 
 // Check if we're on an IT Park domain
@@ -223,7 +225,14 @@ if (window.location.hostname.includes('it-park.uz')) {
                     });
                     showNotification(successMessage, 'success');
                 } else {
-                    throw new Error('Chrome extension APIs not available');
+                    console.error('Chrome APIs check:', {
+                        chrome: !!chrome,
+                        runtime: !!chrome?.runtime,
+                        storage: !!chrome?.storage,
+                        local: !!chrome?.storage?.local,
+                        extensionId: chrome?.runtime?.id
+                    });
+                    throw new Error('Chrome extension APIs not available - extension context lost');
                 }
             }
             
